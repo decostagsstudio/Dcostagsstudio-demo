@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Gerencia - DCOSTA GS STUDIO</title>
+<link rel="stylesheet" href="admin.css">
+<script defer src="../scripts/store-api.js"></script>
+<script defer src="admin.js"></script>
+</head>
+<body class="auth-only">
+<div class="admin-layout">
+  <aside class="sidebar">
+    <a class="brand" href="#/inicio">DCOSTA ADMIN</a>
+    <nav aria-label="Menu de administracion">
+      <a href="#/inicio" data-route="inicio">Inicio</a>
+      <a href="#/productos" data-route="productos">Productos</a>
+      <a href="#/pedidos" data-route="pedidos">Pedidos</a>
+      <a href="#/ventas" data-route="ventas">Ventas</a>
+      <a href="#/clientes" data-route="clientes">Clientes</a>
+      <a href="#/facturacion" data-route="facturacion">Facturacion</a>
+      <a href="#/inventario" data-route="inventario">Inventario</a>
+      <a href="#/auditoria" data-route="auditoria">Auditoria</a>
+      <a href="#/usuarios" data-route="usuarios">Usuarios</a>
+      <a href="#/configuracion" data-route="configuracion">Configuracion</a>
+    </nav>
+    <a class="store-link" href="../index.html">Ver tienda</a>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Zona Gerente</p>
+        <h1 id="route-title">Inicio</h1>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+        <p class="status" id="sync-status">Datos simulados listos para API</p>
+        <button id="logout-btn" class="btn btn-soft" type="button">Cerrar sesion</button>
+      </div>
+    </header>
+
+    <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+    <section id="view" class="view" aria-live="polite"></section>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área cliente - DCOSTA GS STUDIO</title>
+<link rel="stylesheet" href="cliente.css">
+<script defer src="../data/catalog.js"></script>
+<script defer src="../scripts/store-api.js"></script>
+<script defer src="cliente.js"></script>
+</head>
+<body>
+
+<header class="client-header">
+<a class="client-brand" href="../index.html">DCOSTA GS STUDIO</a>
+<div class="client-route-picker">
+<button id="route-toggle" class="route-toggle" type="button" aria-expanded="false" aria-controls="route-menu">
+<span id="route-label">Acceso</span>
+</button>
+<nav id="route-menu" class="route-menu" aria-label="Área cliente">
+<a href="#/acceso" data-route="acceso">Acceso</a>
+<a href="#/perfil" data-route="perfil">Perfil</a>
+<a href="#/pedidos" data-route="pedidos">Mis pedidos</a>
+<a href="#/favoritos" data-route="favoritos">Favoritos</a>
+<a href="#/bolsa" data-route="bolsa">Bolsa</a>
+<a href="#/ayuda" data-route="ayuda">Ayuda</a>
+</nav>
+</div>
+</header>
+
+<main class="client-main">
+<section class="client-hero">
+<p class="eyebrow">Área cliente</p>
+<h1 id="route-title">Acceso</h1>
+<p id="route-description">Gestiona tus datos, favoritos y selección de compra.</p>
+</section>
+
+<section id="client-view" class="client-view" aria-live="polite"></section>
+</main>
+
+</body>
+</html>
