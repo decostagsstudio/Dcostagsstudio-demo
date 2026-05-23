@@ -108,13 +108,13 @@ async function renderProduct(product) {
 
   container.innerHTML = `
     <div class="product-media">
-      <img id="main-product-image" src="${galleryImages[0]}" alt="${product.name}" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
+      <img id="main-product-image" src="${galleryImages[0]}" alt="${product.name}" data-fallback-src="${product.fallbackImage || "/assets/photos/women-01.jpg"}">
       <div class="product-thumbs" aria-label="Galería de imágenes">
         ${galleryImages
           .map(
             (image, index) => `
             <button class="product-thumb ${index === 0 ? "is-active" : ""}" type="button" data-image="${image}" aria-label="Ver imagen ${index + 1} de ${product.name}">
-              <img src="${image}" alt="" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
+              <img src="${image}" alt="" data-fallback-src="${product.fallbackImage || "/assets/photos/women-01.jpg"}">
             </button>
           `,
           )
@@ -165,7 +165,7 @@ async function renderProduct(product) {
             .map(
               (item) => `
               <button class="related-card" type="button" data-product-name="${item.name}">
-                <img src="${item.image}" alt="${item.name}" data-fallback-src="${item.fallbackImage || "/assets/product-default.svg"}">
+                <img src="${item.image}" alt="${item.name}" data-fallback-src="${item.fallbackImage || "/assets/photos/women-01.jpg"}">
                 <span>${item.name}</span>
                 <strong>${formatter.format(displayPrice(item))}</strong>
               </button>

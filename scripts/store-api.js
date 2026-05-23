@@ -30,11 +30,11 @@ const DCOSTA_CATEGORY_LABELS = {
 };
 
 const DCOSTA_CATEGORY_IMAGES = {
-  men: ["/assets/product-men.svg", "/assets/product-default.svg"],
-  women: ["/assets/product-women.svg", "/assets/product-default.svg"],
-  wallets: ["/assets/product-wallets.svg", "/assets/product-default.svg"],
-  bags: ["/assets/product-bags.svg", "/assets/product-default.svg"],
-  default: ["/assets/product-default.svg"],
+  men: ["/assets/photos/men-01.jpg", "/assets/photos/men-02.jpg"],
+  women: ["/assets/photos/women-01.jpg", "/assets/photos/women-02.jpg"],
+  wallets: ["/assets/photos/wallets-01.jpg", "/assets/photos/wallets-02.jpg"],
+  bags: ["/assets/photos/bags-01.jpg", "/assets/photos/bags-02.jpg"],
+  default: ["/assets/photos/women-01.jpg"],
 };
 
 function isDemoExternalImage(source = "") {
@@ -56,7 +56,7 @@ function normalizeImageSource(source, category, index = 0) {
 window.addEventListener("error", (event) => {
   const image = event.target;
   if (!(image instanceof HTMLImageElement)) return;
-  const fallback = image.dataset.fallbackSrc || "/assets/product-default.svg";
+  const fallback = image.dataset.fallbackSrc || "/assets/photos/women-01.jpg";
   if (image.getAttribute("src") === fallback) return;
   image.src = fallback;
 }, true);

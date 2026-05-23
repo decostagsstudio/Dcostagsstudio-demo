@@ -295,16 +295,16 @@ opacity:1;
 }
 
 .hero-slide:nth-child(1){
-background-image:url('../assets/hero-women.svg');
+background-image:url('../assets/photos/hero-women.jpg');
 }
 
 .hero-slide:nth-child(2){
-background-image:url('../assets/hero-accessories.svg');
+background-image:url('../assets/photos/hero-accessories.jpg');
 animation-duration:20s;
 }
 
 .hero-slide:nth-child(3){
-background-image:url('../assets/hero-men.svg');
+background-image:url('../assets/photos/hero-men.jpg');
 animation-duration:22s;
 }
 
