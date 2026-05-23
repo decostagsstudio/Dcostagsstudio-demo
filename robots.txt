@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://dcostagsstudio.com/sitemap.xml
+Sitemap: https://dcostagsstudio-demo.vercel.app/sitemap.xml

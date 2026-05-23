@@ -1,0 +1,2 @@
+DCOSTA_DATA_SOURCE=api
+DCOSTA_API_BASE_URL=https://dcosta-store.onrender.com/api

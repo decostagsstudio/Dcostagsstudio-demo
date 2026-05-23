@@ -39,6 +39,7 @@ Mientras se use el dominio provisional, `STORE_PUBLIC_URL` apunta a Vercel y `CO
 Si al abrir Vercel aparece `Authentication Required`, no es un fallo del frontend: es Deployment Protection. Para demo publica, desactivalo en Vercel > Project Settings > Deployment Protection o usa un bypass token temporal.
 
 Cuando se compre/conecte el dominio final, cambia `STORE_PUBLIC_URL` a `https://dcostagsstudio.com` y añade el dominio custom en el hosting que vaya a servir la web publica.
+Hasta entonces, `sitemap.xml`, `robots.txt` y los canonical apuntan al dominio provisional publico de Vercel para que la indexacion no apunte a un dominio sin conectar.
 
 ## Vercel
 
@@ -65,6 +66,14 @@ DCOSTA_API_BASE_URL=https://dcosta-store.onrender.com/api
 ```
 
 Sin esas variables, la web publica sigue en modo local para que el catalogo no dependa de un backend sin desplegar.
+
+Despues de cambiar esas variables en Vercel, haz redeploy y comprueba:
+
+```bash
+npm run check:public
+```
+
+El aviso "Vercel todavia en modo local" debe desaparecer cuando `dist/scripts/runtime-config.js` incluya `dataSource: "api"` y `apiBaseUrl`.
 
 ## Supabase PostgreSQL
 
