@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-label="Menswear product visual">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ebe6de"/>
+      <stop offset="1" stop-color="#b7ada1"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f9f4ed"/>
+      <stop offset="1" stop-color="#beb3a8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="26" flood-color="#27221f" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1200" fill="url(#bg)"/>
+  <rect x="110" y="120" width="680" height="930" rx="340" fill="#f9f5ee" opacity=".28"/>
+  <g filter="url(#shadow)">
+    <path d="M270 250h360l92 148-98 496H276l-98-496 92-148z" fill="url(#shirt)"/>
+    <path d="M360 252h180l32 102-122 126-122-126 32-102z" fill="#2f2d2b"/>
+    <path d="M450 486v390" stroke="#72685f" stroke-width="10" opacity=".48"/>
+    <circle cx="490" cy="570" r="9" fill="#3b342e"/>
+    <circle cx="490" cy="662" r="9" fill="#3b342e"/>
+    <circle cx="490" cy="754" r="9" fill="#3b342e"/>
+  </g>
+</svg>

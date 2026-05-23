@@ -221,53 +221,30 @@
 
 const warmImageSet = {
   men: [
-    "https://images.pexels.com/photos/3754251/pexels-photo-3754251.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/31888152/pexels-photo-31888152.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7096981/pexels-photo-7096981.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7252074/pexels-photo-7252074.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7653836/pexels-photo-7653836.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7251066/pexels-photo-7251066.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/4398944/pexels-photo-4398944.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/3054983/pexels-photo-3054983.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/5917210/pexels-photo-5917210.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7904116/pexels-photo-7904116.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "/assets/product-men.svg",
+    "/assets/product-default.svg",
+    "/assets/product-men.svg",
   ],
   women: [
-    "https://images.pexels.com/photos/3916426/pexels-photo-3916426.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7760239/pexels-photo-7760239.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/9019647/pexels-photo-9019647.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/3271038/pexels-photo-3271038.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/9637859/pexels-photo-9637859.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/13585507/pexels-photo-13585507.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/6073541/pexels-photo-6073541.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/11446780/pexels-photo-11446780.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/6774283/pexels-photo-6774283.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/3189020/pexels-photo-3189020.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "/assets/product-women.svg",
+    "/assets/product-default.svg",
+    "/assets/product-women.svg",
   ],
   wallets: [
-    "https://images.pexels.com/photos/8062364/pexels-photo-8062364.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/37326648/pexels-photo-37326648.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/8062364/pexels-photo-8062364.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/15763948/pexels-photo-15763948.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/37326648/pexels-photo-37326648.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "/assets/product-wallets.svg",
+    "/assets/product-default.svg",
+    "/assets/product-wallets.svg",
   ],
   bags: [
-    "https://images.pexels.com/photos/8396731/pexels-photo-8396731.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/29096395/pexels-photo-29096395.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/9595067/pexels-photo-9595067.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/31449623/pexels-photo-31449623.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/14039947/pexels-photo-14039947.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/31451027/pexels-photo-31451027.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/31529647/pexels-photo-31529647.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/7742501/pexels-photo-7742501.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/33708892/pexels-photo-33708892.jpeg?auto=compress&cs=tinysrgb&w=900",
-    "https://images.pexels.com/photos/31090142/pexels-photo-31090142.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "/assets/product-bags.svg",
+    "/assets/product-default.svg",
+    "/assets/product-bags.svg",
   ],
 };
 
 Object.entries(warmImageSet).forEach(([category, images]) => {
   products[category].forEach((product, index) => {
-    product.image = images[index];
+    product.image = images[index % images.length];
   });
 });
 

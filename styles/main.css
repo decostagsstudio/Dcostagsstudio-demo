@@ -295,16 +295,16 @@ opacity:1;
 }
 
 .hero-slide:nth-child(1){
-background-image:url('https://images.pexels.com/photos/7760239/pexels-photo-7760239.jpeg?auto=compress&cs=tinysrgb&w=1800');
+background-image:url('../assets/hero-women.svg');
 }
 
 .hero-slide:nth-child(2){
-background-image:url('https://images.pexels.com/photos/6774283/pexels-photo-6774283.jpeg?auto=compress&cs=tinysrgb&w=1800');
+background-image:url('../assets/hero-accessories.svg');
 animation-duration:20s;
 }
 
 .hero-slide:nth-child(3){
-background-image:url('https://images.pexels.com/photos/3754251/pexels-photo-3754251.jpeg?auto=compress&cs=tinysrgb&w=1800');
+background-image:url('../assets/hero-men.svg');
 animation-duration:22s;
 }
 

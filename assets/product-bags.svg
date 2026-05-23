@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-label="Bag product visual">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eee8df"/>
+      <stop offset="1" stop-color="#c4b6a8"/>
+    </linearGradient>
+    <linearGradient id="bag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6d4932"/>
+      <stop offset="1" stop-color="#211713"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="30" stdDeviation="28" flood-color="#2a211b" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1200" fill="url(#bg)"/>
+  <circle cx="710" cy="244" r="162" fill="#fff6eb" opacity=".36"/>
+  <g filter="url(#shadow)">
+    <path d="M220 470h460l70 398H150l70-398z" fill="url(#bag)"/>
+    <path d="M312 470c10-142 70-222 138-222s128 80 138 222" fill="none" stroke="#33261e" stroke-width="32" stroke-linecap="round"/>
+    <path d="M266 552h368" stroke="#dcc4a7" stroke-width="16" stroke-linecap="round" opacity=".72"/>
+    <rect x="336" y="626" width="228" height="122" rx="24" fill="#d8bd99" opacity=".2"/>
+  </g>
+</svg>

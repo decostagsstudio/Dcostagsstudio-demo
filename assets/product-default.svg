@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-label="DCOSTA product visual">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1ebe4"/>
+      <stop offset="1" stop-color="#b9afa4"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1200" fill="url(#bg)"/>
+  <rect x="210" y="260" width="480" height="650" rx="240" fill="#fff8ef" opacity=".34"/>
+  <path d="M318 430h264l68 132-82 300H332l-82-300 68-132z" fill="#2f2b28" opacity=".82"/>
+  <path d="M334 430c38 58 76 86 116 86s78-28 116-86" fill="none" stroke="#d8c2aa" stroke-width="16" stroke-linecap="round"/>
+</svg>

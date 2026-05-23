@@ -127,7 +127,7 @@ function createProductCard(product) {
   card.innerHTML = `
     <button class="like-button" type="button" aria-label="Me gusta ${product.name}"></button>
     <div class="card-media">
-      <img src="${product.image}" alt="${product.name}">
+      <img src="${product.image}" alt="${product.name}" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
       <span class="product-badge">${product.badge || "Disponible"}</span>
     </div>
     <div class="card-content">
@@ -285,7 +285,7 @@ function renderFavorites() {
     .map(
       (item, index) => `
       <div class="favorite-item">
-        <img src="${item.image}" alt="${item.name}">
+        <img src="${item.image}" alt="${item.name}" data-fallback-src="${item.fallbackImage || "/assets/product-default.svg"}">
         <span>${item.name}</span>
         <label class="favorite-size">
           Talla
@@ -405,7 +405,7 @@ function renderSearchResults(query = "") {
     .map(
       (product) => `
       <button class="search-result" type="button" data-product-name="${product.name}">
-        <img src="${product.image}" alt="${product.name}">
+        <img src="${product.image}" alt="${product.name}" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
         <span>
           <strong>${product.name}</strong>
           ${product.categoryLabel} - ${formatter.format(displayPrice(product))}
@@ -491,7 +491,7 @@ function renderSearchResultsEnhanced(query = "") {
     .map(
       (product) => `
       <button class="search-result" type="button" data-product-name="${product.name}">
-        <img src="${product.image}" alt="${product.name}">
+        <img src="${product.image}" alt="${product.name}" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
         <span>
           <strong>${product.name}</strong>
           ${product.categoryLabel} - ${product.color} - ${formatter.format(displayPrice(product))}
@@ -530,7 +530,7 @@ function renderCart() {
     .map(
       (item, index) => `
       <div class="cart-item">
-        <img src="${item.image}" alt="${item.name}">
+        <img src="${item.image}" alt="${item.name}" data-fallback-src="${item.fallbackImage || "/assets/product-default.svg"}">
         <span class="cart-item-info">
           ${item.name} x${item.quantity}
           <small>Talla: ${item.size}</small>

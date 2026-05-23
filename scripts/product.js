@@ -89,9 +89,15 @@ function openProduct(product) {
 async function renderProduct(product) {
   sessionStorage.setItem("dcosta-return-product-name", product.name);
   const container = document.querySelector("#product-detail");
+  const catalog = visibleProducts(await loadCatalog());
+  const catalogProduct = catalog.find((item) =>
+    (item.id && product.id && item.id === product.id) || item.name === product.name
+  );
+  if (catalogProduct) {
+    product = { ...product, ...catalogProduct };
+  }
   const selectedSize = product.sizes?.[0] || "One size";
   const description = product.description || inferDescription(product);
-  const catalog = visibleProducts(await loadCatalog());
   const currentIndex = catalog.findIndex((item) => item.name === product.name);
   const prevProduct = currentIndex > 0 ? catalog[currentIndex - 1] : catalog[catalog.length - 1];
   const nextProduct = currentIndex >= 0 && currentIndex < catalog.length - 1 ? catalog[currentIndex + 1] : catalog[0];
@@ -102,13 +108,13 @@ async function renderProduct(product) {
 
   container.innerHTML = `
     <div class="product-media">
-      <img id="main-product-image" src="${galleryImages[0]}" alt="${product.name}">
+      <img id="main-product-image" src="${galleryImages[0]}" alt="${product.name}" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
       <div class="product-thumbs" aria-label="Galería de imágenes">
         ${galleryImages
           .map(
             (image, index) => `
             <button class="product-thumb ${index === 0 ? "is-active" : ""}" type="button" data-image="${image}" aria-label="Ver imagen ${index + 1} de ${product.name}">
-              <img src="${image}" alt="">
+              <img src="${image}" alt="" data-fallback-src="${product.fallbackImage || "/assets/product-default.svg"}">
             </button>
           `,
           )
@@ -159,7 +165,7 @@ async function renderProduct(product) {
             .map(
               (item) => `
               <button class="related-card" type="button" data-product-name="${item.name}">
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" data-fallback-src="${item.fallbackImage || "/assets/product-default.svg"}">
                 <span>${item.name}</span>
                 <strong>${formatter.format(displayPrice(item))}</strong>
               </button>

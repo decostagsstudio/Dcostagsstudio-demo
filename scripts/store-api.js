@@ -1,10 +1,16 @@
-const DCOSTA_DATA_SOURCE = "api"; // Usa backend y cae a local si falla.
-const DCOSTA_API_BASE_URL = (
+const DCOSTA_RUNTIME_CONFIG = window.DCOSTA_CONFIG || {};
+const DCOSTA_DEFAULT_API_BASE_URL = (
   window.location.protocol === "file:" ||
   (["localhost", "127.0.0.1"].includes(window.location.hostname) && window.location.port !== "4000")
 )
   ? "http://localhost:4000/api"
   : "/api";
+const DCOSTA_API_BASE_URL = DCOSTA_RUNTIME_CONFIG.apiBaseUrl || DCOSTA_DEFAULT_API_BASE_URL;
+const DCOSTA_IS_BACKEND_ORIGIN = window.location.port === "4000" || window.location.hostname.endsWith(".onrender.com");
+const DCOSTA_DATA_SOURCE = String(
+  DCOSTA_RUNTIME_CONFIG.dataSource ||
+  (DCOSTA_RUNTIME_CONFIG.apiBaseUrl || DCOSTA_IS_BACKEND_ORIGIN ? "api" : "local"),
+).toLowerCase();
 
 const DCOSTA_STORAGE_KEYS = {
   catalog: "dcosta-catalog",
@@ -23,6 +29,38 @@ const DCOSTA_CATEGORY_LABELS = {
   bags: "Bolsos",
 };
 
+const DCOSTA_CATEGORY_IMAGES = {
+  men: ["/assets/product-men.svg", "/assets/product-default.svg"],
+  women: ["/assets/product-women.svg", "/assets/product-default.svg"],
+  wallets: ["/assets/product-wallets.svg", "/assets/product-default.svg"],
+  bags: ["/assets/product-bags.svg", "/assets/product-default.svg"],
+  default: ["/assets/product-default.svg"],
+};
+
+function isDemoExternalImage(source = "") {
+  return /images\.(pexels|unsplash)\.com|upload\.wikimedia\.org/i.test(String(source));
+}
+
+function fallbackImageForCategory(category, index = 0) {
+  const images = DCOSTA_CATEGORY_IMAGES[category] || DCOSTA_CATEGORY_IMAGES.default;
+  return images[index % images.length];
+}
+
+function normalizeImageSource(source, category, index = 0) {
+  if (!source || isDemoExternalImage(source)) {
+    return fallbackImageForCategory(category, index);
+  }
+  return source;
+}
+
+window.addEventListener("error", (event) => {
+  const image = event.target;
+  if (!(image instanceof HTMLImageElement)) return;
+  const fallback = image.dataset.fallbackSrc || "/assets/product-default.svg";
+  if (image.getAttribute("src") === fallback) return;
+  image.src = fallback;
+}, true);
+
 function buildSizeStock(product) {
   if (product?.sizeStock && typeof product.sizeStock === "object" && Object.keys(product.sizeStock).length) {
     return Object.entries(product.sizeStock).reduce((acc, [size, qty]) => {
@@ -39,10 +77,16 @@ function buildSizeStock(product) {
 }
 
 function normalizeProduct(product, category = product?.category) {
+  const normalizedCategory = category || product?.category || "default";
+  const image = normalizeImageSource(product?.image, normalizedCategory, 0);
+  const sourceImages = Array.isArray(product?.images) && product.images.length ? product.images : [image];
   return {
     ...product,
-    category,
-    categoryLabel: product?.categoryLabel || DCOSTA_CATEGORY_LABELS[category] || category || "",
+    category: normalizedCategory,
+    categoryLabel: product?.categoryLabel || DCOSTA_CATEGORY_LABELS[normalizedCategory] || normalizedCategory || "",
+    image,
+    images: sourceImages.map((source, index) => normalizeImageSource(source, normalizedCategory, index)),
+    fallbackImage: fallbackImageForCategory(normalizedCategory),
     sizes: Array.isArray(product?.sizes) ? product.sizes : [],
     sizeStock: buildSizeStock(product),
   };
@@ -200,7 +244,7 @@ async function uploadProductImages(files) {
 
 async function getCart() {
   // Temporal: carrito sigue en local hasta crear módulo backend de cart.
-  return readStorage(DCOSTA_STORAGE_KEYS.cart, []);
+  return readStorage(DCOSTA_STORAGE_KEYS.cart, []).map((item) => normalizeProduct(item));
 }
 
 async function saveCart(cart) {
@@ -211,7 +255,7 @@ async function saveCart(cart) {
 
 async function getFavorites() {
   // Temporal: favoritos sigue en local hasta crear módulo backend de favorites.
-  return readStorage(DCOSTA_STORAGE_KEYS.favorites, []);
+  return readStorage(DCOSTA_STORAGE_KEYS.favorites, []).map((item) => normalizeProduct(item));
 }
 
 async function saveFavorites(favorites) {
