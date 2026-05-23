@@ -53,3 +53,15 @@ Variables necesarias para subida:
 - `IMAGE_UPLOAD_MAX_MB`
 
 El endpoint de subida usa memoria y no guarda archivos fisicos en el servidor. Solo devuelve URLs `webp` para guardar en `products.image` y `products.images`.
+
+## Notificaciones de pedido
+
+`POST /api/orders` puede avisar a un webhook externo sin bloquear el pedido si falla. Sirve para conectar Make, Zapier, n8n o un servicio de email transaccional.
+
+Variables opcionales:
+- `STORE_PUBLIC_URL`
+- `ORDER_NOTIFICATION_WEBHOOK_URL`
+- `ORDER_NOTIFICATION_WEBHOOK_SECRET`
+- `ORDER_NOTIFICATION_TO_EMAIL`
+
+En produccion, `npm run db:seed-admin` exige definir `SEED_DIRECTOR_PASSWORD` con una contrasena inicial fuerte para evitar credenciales por defecto.

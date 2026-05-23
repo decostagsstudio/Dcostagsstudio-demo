@@ -149,7 +149,7 @@ async function renderProduct(product) {
         </details>
         <details>
           <summary>Compra online</summary>
-          <p>La ficha está preparada para ecommerce. La pasarela de pago se añadirá en una fase posterior.</p>
+          <p>La ficha esta preparada para solicitud de pedido asistida. El pago online se anadira en una fase posterior.</p>
         </details>
       </div>
       <div class="related-products">

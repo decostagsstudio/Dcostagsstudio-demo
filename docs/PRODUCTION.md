@@ -19,8 +19,15 @@ En produccion, `scripts/store-api.js` usa `/api` cuando el dominio no es `localh
    - `TRUST_PROXY=true` si hay nginx, Caddy, Cloudflare, Railway, Render, Fly.io u otro proxy delante.
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`: credenciales de Cloudinary.
    - `CLOUDINARY_FOLDER`: carpeta de destino para productos, por ejemplo `dcosta/products`.
+   - `STORE_PUBLIC_URL`: URL publica de la tienda.
+   - `ORDER_NOTIFICATION_WEBHOOK_URL`: webhook opcional para avisos de pedido.
+   - `ORDER_NOTIFICATION_WEBHOOK_SECRET`: secreto opcional enviado en `X-DCOSTA-Webhook-Secret`.
+   - `ORDER_NOTIFICATION_TO_EMAIL`: email interno de destino si el webhook genera correos.
+   - `SEED_DIRECTOR_PASSWORD`: contrasena inicial fuerte para ejecutar `npm run db:seed-admin` en produccion.
 
 El backend bloquea el arranque en `NODE_ENV=production` si `CORS_ORIGIN=*` o si `JWT_SECRET` es inseguro. Si faltan credenciales de Cloudinary, Supabase/PostgreSQL sigue funcionando y solo queda desactivada la subida de imagenes.
+
+En produccion, el seed del usuario director falla si no se define `SEED_DIRECTOR_PASSWORD` o si se mantiene la contrasena por defecto de desarrollo.
 
 ## Cloudinary
 
@@ -56,9 +63,16 @@ Desde `backend/`:
 ```bash
 npm ci --omit=dev
 npm run db:migrate
-npm run db:seed-admin
+SEED_DIRECTOR_PASSWORD='cambia-esto-por-una-contrasena-fuerte' npm run db:seed-admin
 npm run db:seed-catalog
 npm start
+```
+
+En Windows PowerShell:
+
+```powershell
+$env:SEED_DIRECTOR_PASSWORD="cambia-esto-por-una-contrasena-fuerte"
+npm run db:seed-admin
 ```
 
 Comprueba salud:
@@ -109,5 +123,6 @@ server {
 - Catalogo sembrado o importado desde admin.
 - Usuario director creado con `npm run db:seed-admin` y contrasena cambiada.
 - Cloudinary configurado y probado desde admin > Productos.
+- Webhook de pedido configurado o decision explicita de operar sin avisos automaticos.
 - Backups de PostgreSQL programados.
 - Proceso gestionado con systemd, PM2 o el gestor de la plataforma.

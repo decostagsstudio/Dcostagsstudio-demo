@@ -35,7 +35,7 @@ const routeMeta = {
   },
   bolsa: {
     title: "Bolsa",
-    description: "Revisa la selección que tienes preparada antes de activar compra online.",
+    description: "Revisa la seleccion que tienes preparada antes de enviar una solicitud a tienda.",
   },
   ayuda: {
     title: "Ayuda",
@@ -252,7 +252,7 @@ function renderAccess() {
       return;
     }
 
-    loginMessage.textContent = `Tu contraseña local es: ${savedAccount.password}`;
+    loginMessage.textContent = "Por seguridad no mostramos contrasenas. Crea una cuenta local nueva o contacta con tienda.";
   });
 
   document.querySelector("#register-form").addEventListener("submit", (event) => {
@@ -481,13 +481,13 @@ function renderHelp() {
   view.innerHTML = `
     <section class="client-card">
       <h2>Ayuda</h2>
-      <p>Estamos preparando la compra online completa. Mientras tanto, puedes revisar tus datos, favoritos, bolsa y pedidos guardados desde esta área.</p>
+        <p>Estamos preparando la compra online completa. Mientras tanto, puedes revisar tus datos, favoritos, bolsa y solicitudes guardadas desde esta area.</p>
     </section>
     <div class="help-grid">
       <article class="help-card">
         <span>Pedidos</span>
         <h2>Estado de pedidos</h2>
-        <p>Los pedidos guardados aparecen en Mis pedidos. Cuando haya envío real, aquí se mostrará si está en camino.</p>
+        <p>Las solicitudes guardadas aparecen en Mis pedidos. Cuando haya envio real, aqui se mostrara si esta en camino.</p>
       </article>
       <article class="help-card">
         <span>Cambios</span>

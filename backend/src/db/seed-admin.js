@@ -6,6 +6,12 @@ async function run() {
   const password = process.env.SEED_DIRECTOR_PASSWORD || "Director#2026";
   const name = process.env.SEED_DIRECTOR_NAME || "Dirección";
 
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (isProduction && (!process.env.SEED_DIRECTOR_PASSWORD || password === "Director#2026" || password.length < 12)) {
+    throw new Error("Set a strong SEED_DIRECTOR_PASSWORD before seeding the production director user.");
+  }
+
   const hash = await hashPassword(password);
 
   await db.query(

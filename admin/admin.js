@@ -43,17 +43,17 @@ const DEFAULT_SESSION_SETTINGS = { inactivityMinutes: 15 };
 
 const money = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
 
-const STATUS = ["Pendiente", "Pagado", "Enviado", "Completado"];
+const STATUS = ["Pendiente", "En preparacion", "Enviado", "Completado"];
 
 const demoOrders = [
   { id: "PED-2401", customer: "Laura Gomez", items: 3, total: 129.9, status: "Pendiente", date: "2026-05-12" },
-  { id: "PED-2402", customer: "David Ruiz", items: 2, total: 84.0, status: "Pagado", date: "2026-05-13" },
+  { id: "PED-2402", customer: "David Ruiz", items: 2, total: 84.0, status: "En preparacion", date: "2026-05-13" },
   { id: "PED-2403", customer: "Ana Martin", items: 1, total: 49.9, status: "Enviado", date: "2026-05-14" },
   { id: "PED-2404", customer: "Pablo Diaz", items: 4, total: 212.5, status: "Completado", date: "2026-05-15" },
-  { id: "PED-2405", customer: "Elena Torres", items: 2, total: 97.8, status: "Pagado", date: "2026-05-16" },
+  { id: "PED-2405", customer: "Elena Torres", items: 2, total: 97.8, status: "En preparacion", date: "2026-05-16" },
 ];
 
-const ORDER_STATUSES = ["Pendiente", "Pagado", "Enviado", "Completado", "Cancelado"];
+const ORDER_STATUSES = ["Pendiente", "En preparacion", "Enviado", "Completado", "Cancelado"];
 
 const salesByDay = [
   { label: "Lun", amount: 340 },
@@ -300,6 +300,14 @@ function isEmergencyApiFailure(error) {
   return true;
 }
 
+function canUseLocalEmergencyAuth() {
+  const hostname = window.location.hostname;
+  return (
+    window.location.protocol === "file:" ||
+    ["", "localhost", "127.0.0.1", "::1", "[::1]"].includes(hostname)
+  );
+}
+
 function ensureLocalUserFromApiUser(apiUser) {
   if (!apiUser?.email) return null;
   const users = getUsers();
@@ -340,6 +348,10 @@ async function authenticateAdmin(user, password, auditScope) {
   if (!user) return { ok: false, reason: "user-not-found" };
   if (isUserLocked(user)) return { ok: false, reason: "locked" };
   if (!window.DCOSTA_STORE_API?.loginAdmin) {
+    if (!canUseLocalEmergencyAuth()) {
+      addAuditLog("LOGIN_API_UNAVAILABLE", `API no disponible en dominio publico: ${user.name}`);
+      return { ok: false, reason: "api-unavailable" };
+    }
     const localOk = await verifyUserPassword(user, password);
     if (!localOk) {
       recordFailedLogin(user.id);
@@ -368,6 +380,11 @@ async function authenticateAdmin(user, password, auditScope) {
       recordFailedLogin(user.id);
       addAuditLog("LOGIN_FAILED", `Credenciales invalidas API: ${user.name}`);
       return { ok: false, reason: "invalid-credentials" };
+    }
+
+    if (!canUseLocalEmergencyAuth()) {
+      addAuditLog("LOGIN_API_UNAVAILABLE", `Fallback local bloqueado en dominio publico: ${user.name}`);
+      return { ok: false, reason: "api-unavailable" };
     }
 
     const localOk = await verifyUserPassword(user, password);
@@ -423,6 +440,11 @@ async function requireManagerReauth(reason) {
         addAuditLog("MANAGER_REAUTH_FAILED", `${reason} (API credenciales)`);
         return false;
       }
+      if (!canUseLocalEmergencyAuth()) {
+        showToast("API no disponible. Reintenta cuando el backend responda.");
+        addAuditLog("MANAGER_REAUTH_FAILED", `${reason} (API no disponible)`);
+        return false;
+      }
       const okLocal = await verifyUserPassword(actor, input);
       if (!okLocal) {
         showToast("Reautenticacion fallida");
@@ -432,6 +454,11 @@ async function requireManagerReauth(reason) {
       addAuditLog("MANAGER_REAUTH_OK", `${reason} (fallback local emergencia)`);
       return true;
     }
+  }
+  if (!canUseLocalEmergencyAuth()) {
+    showToast("API no disponible. Reintenta cuando el backend responda.");
+    addAuditLog("MANAGER_REAUTH_FAILED", `${reason} (API no disponible)`);
+    return false;
   }
   const ok = await verifyUserPassword(actor, input);
   if (!ok) {
@@ -520,7 +547,8 @@ function setActiveRoute(route) {
 
 function badgeClass(status) {
   if (status === "Pendiente") return "st-pendiente";
-  if (status === "Pagado") return "st-pagado";
+  if (status === "En preparacion") return "st-preparacion";
+  if (status === "Pagado") return "st-preparacion";
   if (status === "Enviado") return "st-enviado";
   return "st-completado";
 }
@@ -608,8 +636,7 @@ function renderOrdersTable(orders) {
 function normalizeOrderStatus(status) {
   if (!status) return "Pendiente";
   const s = String(status).toLowerCase();
-  if (s.includes("prepar")) return "Pendiente";
-  if (s.includes("paga")) return "Pagado";
+  if (s.includes("prepar") || s.includes("paga")) return "En preparacion";
   if (s.includes("camino") || s.includes("envia")) return "Enviado";
   if (s.includes("entreg") || s.includes("complet")) return "Completado";
   if (s.includes("cancel")) return "Cancelado";
@@ -1755,6 +1782,10 @@ async function renderInicio() {
       showToast(`Usuario bloqueado. Intenta en ${minutesLeft(target)} min`);
       return;
     }
+    if (apiResult.reason === "api-unavailable") {
+      showToast("API no disponible. Revisa el backend antes de acceder al admin.");
+      return;
+    }
     showToast("Credenciales invalidas");
     return;
     if (isUserLocked(target)) {
@@ -2743,6 +2774,10 @@ function renderLockScreen() {
     }
     if (unlockResult.reason === "locked") {
       showToast(`Usuario bloqueado. Intenta en ${minutesLeft(user)} min`);
+      return;
+    }
+    if (unlockResult.reason === "api-unavailable") {
+      showToast("API no disponible. Revisa el backend antes de acceder al admin.");
       return;
     }
     addAuditLog("UNLOCK_FAILED", `Intento fallido: ${user.name}`);

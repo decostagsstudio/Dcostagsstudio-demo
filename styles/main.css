@@ -1595,6 +1595,69 @@ line-height:1.65;
 color:#d9c3a5;
 }
 
+.legal-page{
+background:#faf8f5;
+color:#222;
+}
+
+.legal-shell{
+max-width:980px;
+margin:0 auto;
+padding:72px clamp(24px,5vw,64px) 96px;
+}
+
+.legal-hero{
+margin-bottom:44px;
+}
+
+.legal-hero p,
+.legal-hero span{
+display:block;
+margin-bottom:12px;
+color:#7a6a58;
+font-size:.76rem;
+font-weight:700;
+letter-spacing:.14em;
+text-transform:uppercase;
+}
+
+.legal-hero h1{
+max-width:760px;
+font-family:Georgia,"Times New Roman",serif;
+font-size:clamp(2.2rem,5vw,4.8rem);
+font-weight:400;
+line-height:.98;
+}
+
+.legal-content{
+display:grid;
+gap:18px;
+}
+
+.legal-content article{
+padding:28px 0;
+border-top:1px solid rgba(34,34,34,.12);
+}
+
+.legal-content h2{
+margin-bottom:12px;
+font-size:.86rem;
+letter-spacing:.14em;
+text-transform:uppercase;
+}
+
+.legal-content p{
+margin-bottom:10px;
+color:#4d463f;
+font-size:.96rem;
+line-height:1.75;
+}
+
+.legal-content a{
+color:#222;
+font-weight:700;
+}
+
 .product-page{
 background:#faf8f5;
 }

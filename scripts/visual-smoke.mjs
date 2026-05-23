@@ -402,7 +402,7 @@ async function runVisualFlow(cdp, baseUrl) {
     document.querySelector('#checkout-form button[type="submit"]').click();
     return true;
   })()`);
-  await waitFor(cdp, "document.querySelector('#form-message')?.textContent.includes('Pedido guardado')", "pedido guardado");
+  await waitFor(cdp, "document.querySelector('#form-message')?.textContent.includes('Solicitud enviada')", "solicitud enviada");
   await expect(cdp, "JSON.parse(localStorage.getItem('dcosta-orders') || '[]').length > 0", "Checkout: pedido guardado localmente");
   await screenshot(cdp, "04-checkout-desktop");
 

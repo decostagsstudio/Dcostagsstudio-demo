@@ -620,7 +620,7 @@ checkoutForm.addEventListener("submit", async (event) => {
     phone: String(data.get("phone") || "").trim(),
     createdAt: new Date().toISOString(),
     status: "Pendiente",
-    statusDetail: "Selección guardada. Pendiente de activar compra online.",
+    statusDetail: "Solicitud recibida. Tienda debe confirmar disponibilidad antes del cobro.",
     notes: [paymentPreference ? `Método preferido: ${paymentPreference}` : "", notes].filter(Boolean).join(" | "),
     items: cart.map((item) => ({ ...item })),
     total,
@@ -630,7 +630,7 @@ checkoutForm.addEventListener("submit", async (event) => {
   cart = [];
   await storeApi.saveCart(cart);
   renderCart();
-  formMessage.textContent = "Pedido guardado. Ya aparece en Mis pedidos y en el panel de administración.";
+  formMessage.textContent = "Solicitud enviada. Ya aparece en Mis pedidos y en el panel de administracion.";
   checkoutForm.reset();
 });
 

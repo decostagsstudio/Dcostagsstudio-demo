@@ -31,6 +31,9 @@ const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || "";
 const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || "";
 const cloudinaryEnabled = Boolean(cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret);
 const imageUploadMaxMb = Number(process.env.IMAGE_UPLOAD_MAX_MB || 8);
+const orderNotificationWebhookUrl = process.env.ORDER_NOTIFICATION_WEBHOOK_URL || "";
+const orderNotificationWebhookSecret = process.env.ORDER_NOTIFICATION_WEBHOOK_SECRET || "";
+const orderNotificationToEmail = process.env.ORDER_NOTIFICATION_TO_EMAIL || "";
 
 if (nodeEnv === "production") {
   if (corsOrigin.includes("*")) {
@@ -59,4 +62,11 @@ export const env = {
     enabled: cloudinaryEnabled,
   },
   imageUploadMaxMb: Number.isFinite(imageUploadMaxMb) && imageUploadMaxMb > 0 ? imageUploadMaxMb : 8,
+  storePublicUrl: process.env.STORE_PUBLIC_URL || "",
+  orderNotifications: {
+    webhookUrl: orderNotificationWebhookUrl,
+    webhookSecret: orderNotificationWebhookSecret,
+    toEmail: orderNotificationToEmail,
+    enabled: Boolean(orderNotificationWebhookUrl),
+  },
 };
