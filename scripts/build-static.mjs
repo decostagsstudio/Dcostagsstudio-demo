@@ -19,10 +19,21 @@ const entries = [
   "scripts",
   "styles",
 ];
+const optionalEntries = new Set(["assets"]);
 
 async function copyEntry(entry) {
   const source = path.join(rootDir, entry);
   const target = path.join(outputDir, entry);
+  if (optionalEntries.has(entry)) {
+    try {
+      await fs.stat(source);
+    } catch (error) {
+      if (error?.code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+  }
   await fs.cp(source, target, { recursive: true });
 }
 
