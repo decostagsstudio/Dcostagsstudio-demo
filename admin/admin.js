@@ -81,6 +81,8 @@ const salesByYear = [
   { label: "2026", amount: 47100 },
 ];
 
+const PRODUCT_CSV_HEADERS = ["id", "reference", "name", "category", "categoryLabel", "price", "salePrice", "isFeatured", "isActive", "stock", "color", "material", "fit", "badge", "care", "sizes", "sizeStock", "image", "image_url", "images", "description"];
+
 function load(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -286,6 +288,7 @@ function beginSessionForUser(user) {
 }
 
 function getApiErrorStatus(error) {
+  if (error?.statusCode) return Number(error.statusCode);
   const message = String(error?.message || "");
   const match = message.match(/API request failed:\s*(\d+)/i);
   return match ? Number(match[1]) : null;
@@ -466,7 +469,7 @@ function canManageTargetUser(actor, target) {
   return getUserRank(actor) > getUserRank(target);
 }
 
-function addAuditLog(action, detail = "") {
+function addAuditLog(action, detail = "", metadata = {}) {
   const logs = load("dcosta-admin-audit-log", []);
   const actor = getSessionUser();
   const entry = {
@@ -476,6 +479,7 @@ function addAuditLog(action, detail = "") {
     actorRole: actor?.role || "empleado",
     action,
     detail,
+    ...metadata,
   };
   save("dcosta-admin-audit-log", [entry, ...logs].slice(0, 1000));
 }
@@ -521,7 +525,7 @@ function badgeClass(status) {
   return "st-completado";
 }
 
-function getOrders() {
+function getLocalOrders() {
   const raw = load("dcosta-admin-demo-orders", null);
   const base = raw && Array.isArray(raw) ? raw : load("dcosta-orders", null);
   const source = Array.isArray(base) && base.length ? base : demoOrders;
@@ -534,7 +538,18 @@ function getOrders() {
   }));
 }
 
-function saveOrders(orders) {
+async function getOrders() {
+  if (window.DCOSTA_STORE_API?.getOrders) {
+    return await window.DCOSTA_STORE_API.getOrders();
+  }
+
+  return getLocalOrders();
+}
+
+async function saveOrders(orders) {
+  if (window.DCOSTA_STORE_API?.saveOrders) {
+    await window.DCOSTA_STORE_API.saveOrders(orders);
+  }
   save("dcosta-admin-demo-orders", orders);
   save("dcosta-orders", orders);
 }
@@ -578,8 +593,8 @@ function renderOrdersTable(orders) {
             <tr>
               <td>${order.id}</td>
               <td>${order.customer}</td>
-              <td>${order.date}</td>
-              <td>${order.items}</td>
+              <td>${formatLocalDateTime(order.createdAt || order.date)}</td>
+              <td>${orderItemCount(order)}</td>
               <td>${money.format(order.total)}</td>
               <td><span class="pill ${badgeClass(order.status)}">${order.status}</span></td>
             </tr>
@@ -601,6 +616,62 @@ function normalizeOrderStatus(status) {
   return "Pendiente";
 }
 
+function orderItemCount(order) {
+  if (!Array.isArray(order.items)) return Number(order.items || 0);
+  return order.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+}
+
+function renderOrderDetail(order, users) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+  const assigned = users.find((u) => u.id === order.assignedTo);
+  return `
+    <details class="order-detail">
+      <summary>Ver detalle de pedido</summary>
+      <div class="order-detail-grid">
+        <section class="order-detail-section">
+          <h3>Cliente</h3>
+          <p>${escapeHtml(order.customer || "-")}</p>
+          <p class="muted">${escapeHtml(order.email || "Email no disponible")}</p>
+          <p class="muted">${escapeHtml(order.phone || "Telefono no disponible")}</p>
+          <p class="muted">${escapeHtml(order.dni || "DNI no disponible")}</p>
+        </section>
+        <section class="order-detail-section">
+          <h3>Seguimiento</h3>
+          <p>${escapeHtml(order.statusDetail || "Sin detalle de estado")}</p>
+          <p class="muted">Responsable: ${escapeHtml(assigned?.name || "Sin asignar")}</p>
+          <p class="muted">Notas: ${escapeHtml(order.notes || "Sin notas")}</p>
+        </section>
+        <section class="order-detail-section order-detail-wide">
+          <h3>Articulos</h3>
+          <div class="order-items-list">
+            ${items.length ? items.map((item) => `
+              <div class="order-item-row">
+                <span>${escapeHtml(item.name || "-")}</span>
+                <span>Talla ${escapeHtml(item.size || "-")}</span>
+                <span>x${Number(item.quantity || 0)}</span>
+                <strong>${money.format(Number(item.price || 0) * Number(item.quantity || 0))}</strong>
+              </div>
+            `).join("") : '<p class="muted">Sin articulos registrados.</p>'}
+          </div>
+        </section>
+        <section class="order-detail-section order-detail-wide">
+          <h3>Historial</h3>
+          <div class="order-history-list">
+            ${history.length ? history.map((entry) => `
+              <div class="order-history-row">
+                <span>${formatLocalDateTime(entry.at)}</span>
+                <span>${escapeHtml(entry.from || "-")} -> ${escapeHtml(entry.to || "-")}</span>
+                <span>${escapeHtml(entry.actor || "Sistema")}</span>
+              </div>
+            `).join("") : '<p class="muted">Sin cambios de estado registrados.</p>'}
+          </div>
+        </section>
+      </div>
+    </details>
+  `;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -616,8 +687,25 @@ async function getProducts() {
 
 async function saveProducts(products) {
   if (window.DCOSTA_STORE_API?.saveCatalog) {
-    await window.DCOSTA_STORE_API.saveCatalog(products);
+    try {
+      await window.DCOSTA_STORE_API.saveCatalog(products, { requireApi: true });
+      syncStatus.textContent = "Guardado en Supabase/API";
+      return;
+    } catch (error) {
+      const status = getApiErrorStatus(error);
+      syncStatus.textContent = "Error guardando en Supabase/API";
+      if (status === 401) {
+        showToast("Sesion API caducada. Cierra sesion y vuelve a entrar en admin.");
+      } else if (status === 403) {
+        showToast("Tu usuario no tiene permiso para guardar productos.");
+      } else {
+        showToast("No se pudo guardar en Supabase. Revisa backend y conexion.");
+      }
+      throw error;
+    }
   }
+
+  throw new Error("API de productos no disponible");
 }
 
 function productKey(product) {
@@ -663,6 +751,32 @@ function formatSizeStock(sizeStock) {
   return Object.entries(sizeStock || {}).map(([size, qty]) => `${size}:${qty}`).join(", ");
 }
 
+function parseBooleanInput(value, fallback = false) {
+  const text = String(value ?? "").trim().toLowerCase();
+  if (!text) return fallback;
+  return ["1", "true", "si", "sí", "yes", "y"].includes(text);
+}
+
+function parseImagesInput(value) {
+  return String(value || "").split(/[\n|]+/).map((x) => x.trim()).filter(Boolean);
+}
+
+function formatImagesInput(images) {
+  return (Array.isArray(images) ? images : []).join("|");
+}
+
+async function uploadProductImagesFromInput(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length) return [];
+
+  if (!window.DCOSTA_STORE_API?.uploadProductImages) {
+    throw new Error("Subida Cloudinary no disponible");
+  }
+
+  const result = await window.DCOSTA_STORE_API.uploadProductImages(files);
+  return Array.isArray(result?.urls) ? result.urls.filter(Boolean) : [];
+}
+
 function totalUnits(product) {
   const sizeStock = normalizeSizeStock(product);
   return Object.values(sizeStock).reduce((sum, qty) => sum + Number(qty || 0), 0);
@@ -673,6 +787,10 @@ function refsFromSelection(products, selectedSet) {
     .filter((p) => selectedSet.has(productKey(p)))
     .map((p) => productRef(p) || productKey(p))
     .join(", ");
+}
+
+function cloneProductForAudit(product) {
+  return JSON.parse(JSON.stringify(product || {}));
 }
 
 function getSchedules() {
@@ -736,7 +854,6 @@ function toCsvValue(value) {
 }
 
 function productsToCsv(products) {
-  const headers = ["id", "reference", "name", "category", "categoryLabel", "price", "stock", "color", "sizes", "sizeStock", "image", "description"];
   const rows = products.map((p) => [
     p.id || "",
     p.reference || "",
@@ -744,14 +861,50 @@ function productsToCsv(products) {
     p.category || "",
     p.categoryLabel || "",
     Number(p.price) || 0,
+    p.salePrice ?? "",
+    p.isFeatured ? "true" : "false",
+    p.isActive === false ? "false" : "true",
     p.stock || "",
     p.color || "",
+    p.material || "",
+    p.fit || "",
+    p.badge || "",
+    p.care || "",
     (p.sizes || []).join("|"),
     formatSizeStock(normalizeSizeStock(p)).replaceAll(", ", "|"),
     p.image || "",
+    p.image || "",
+    formatImagesInput(p.images || []),
     p.description || "",
   ]);
-  return [headers.join(","), ...rows.map((row) => row.map(toCsvValue).join(","))].join("\n");
+  return [PRODUCT_CSV_HEADERS.join(","), ...rows.map((row) => row.map(toCsvValue).join(","))].join("\n");
+}
+
+function productImportTemplateCsv() {
+  const sample = [
+    "real-001",
+    "REF-001",
+    "Nombre producto real",
+    "women",
+    "Mujer",
+    "59.90",
+    "",
+    "false",
+    "true",
+    "Disponible en tienda",
+    "negro",
+    "Algodon",
+    "Corte regular",
+    "Nuevo",
+    "Lavar en frio",
+    "S|M|L",
+    "S:3|M:5|L:2",
+    "https://example.com/imagen-principal.jpg",
+    "https://res.cloudinary.com/tu-cloud-name/image/upload/f_auto,q_auto/v0000000000/dcosta/products/producto-principal.webp",
+    "https://example.com/imagen-2.jpg|https://example.com/imagen-3.jpg",
+    "Descripcion comercial del producto",
+  ];
+  return [PRODUCT_CSV_HEADERS, sample].map((row) => row.map(toCsvValue).join(",")).join("\n");
 }
 
 function parseCsvLine(line) {
@@ -792,11 +945,19 @@ function csvToProducts(text) {
       category,
       categoryLabel: row.categoryLabel || labels[category] || category,
       price: Math.max(0, Number(row.price) || 0),
+      salePrice: row.salePrice ? Math.max(0, Number(row.salePrice) || 0) : null,
+      isFeatured: parseBooleanInput(row.isFeatured, false),
+      isActive: parseBooleanInput(row.isActive, true),
       stock: row.stock || "Disponible",
       color: row.color || "",
+      material: row.material || "",
+      fit: row.fit || "",
+      badge: row.badge || "",
+      care: row.care || "",
       sizes: String(row.sizes || "").split("|").map((x) => x.trim()).filter(Boolean),
       sizeStock: parseSizeStockInput(String(row.sizeStock || "").replaceAll("|", ",")),
-      image: row.image || "",
+      image: row.image_url || row.image || "",
+      images: parseImagesInput(row.images || ""),
       description: row.description || "",
     };
   });
@@ -836,6 +997,7 @@ async function renderProductos() {
         <h2>Gestion de productos <span class="muted-inline">(${filtered.length}/${products.length})</span></h2>
         <div class="table-actions">
           <button id="btn-export-products" class="btn btn-soft">Exportar CSV</button>
+          <button id="btn-template-products" class="btn btn-soft">Plantilla CSV</button>
           <label class="btn btn-soft" for="import-products">Importar CSV</label>
           <input id="import-products" class="file-input" type="file" accept=".csv,text/csv">
           <button id="btn-new-product" class="btn">Nuevo producto</button>
@@ -1020,6 +1182,18 @@ async function renderProductos() {
     URL.revokeObjectURL(url);
     showToast("CSV exportado");
   });
+  document.querySelector("#btn-template-products")?.addEventListener("click", () => {
+    const blob = new Blob([productImportTemplateCsv()], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "dcosta-productos-plantilla.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("Plantilla CSV preparada");
+  });
   document.querySelector("#import-products")?.addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1175,9 +1349,12 @@ async function renderProductos() {
     }
     if (!window.confirm(`Eliminar ${selectedProducts.size} productos seleccionados?`)) return;
     const refs = refsFromSelection(products, selectedProducts);
+    const deletedProducts = products
+      .filter((p) => selectedProducts.has(productKey(p)))
+      .map(cloneProductForAudit);
     const next = products.filter((p) => !selectedProducts.has(productKey(p)));
     await saveProducts(next);
-    addAuditLog("PRODUCT_BULK_DELETE", `Eliminados ${selectedProducts.size} productos [${refs}]`);
+    addAuditLog("PRODUCT_BULK_DELETE", `Eliminados ${selectedProducts.size} productos [${refs}]`, { products: deletedProducts });
     showToast("Productos eliminados");
     selectedProducts.clear();
     renderProductos();
@@ -1235,7 +1412,7 @@ async function renderProductos() {
       if (!window.confirm(`Eliminar "${selected.name}"?`)) return;
       const next = products.filter((p) => productKey(p) !== productKey(selected));
       await saveProducts(next);
-      addAuditLog("PRODUCT_DELETE", `Eliminado: ${selected.name} [${productRef(selected)}]`);
+      addAuditLog("PRODUCT_DELETE", `Eliminado: ${selected.name} [${productRef(selected)}]`, { products: [cloneProductForAudit(selected)] });
       showToast("Producto eliminado");
       renderProductos();
     });
@@ -1253,7 +1430,14 @@ function showProductForm(product, products) {
     category: "women",
     categoryLabel: "Mujer",
     price: 0,
+    salePrice: null,
+    isFeatured: false,
+    isActive: true,
     color: "",
+    material: "",
+    fit: "",
+    badge: "",
+    care: "",
     sizes: ["S", "M", "L"],
     stock: "Disponible",
     image: "",
@@ -1276,11 +1460,20 @@ function showProductForm(product, products) {
         </select>
       </div>
       <div class="field"><label>Precio</label><input name="price" type="number" min="0" step="0.01" value="${Number(draft.price) || 0}"></div>
+      <div class="field"><label>Precio oferta</label><input name="salePrice" type="number" min="0" step="0.01" value="${draft.salePrice ?? ""}"></div>
       <div class="field"><label>Estado</label><input name="stock" value="${escapeHtml(draft.stock || "Disponible")}"></div>
       <div class="field"><label>Color</label><input name="color" value="${escapeHtml(draft.color || "")}"></div>
+      <div class="field"><label>Material</label><input name="material" value="${escapeHtml(draft.material || "")}"></div>
+      <div class="field"><label>Ajuste/formato</label><input name="fit" value="${escapeHtml(draft.fit || "")}"></div>
+      <div class="field"><label>Etiqueta</label><input name="badge" value="${escapeHtml(draft.badge || "")}"></div>
+      <div class="field"><label>Visible</label><select name="isActive"><option value="true" ${draft.isActive === false ? "" : "selected"}>Si</option><option value="false" ${draft.isActive === false ? "selected" : ""}>No</option></select></div>
+      <div class="field"><label>Destacado</label><select name="isFeatured"><option value="false" ${draft.isFeatured ? "" : "selected"}>No</option><option value="true" ${draft.isFeatured ? "selected" : ""}>Si</option></select></div>
       <div class="field full"><label>Tallas y cantidad (ej: S:5, M:3, L:0)</label><input name="sizeStock" value="${escapeHtml(formatSizeStock(draftSizeStock))}"></div>
       <div class="field full"><label>Imagen principal (URL)</label><input name="image" value="${escapeHtml(draft.image || "")}"></div>
+      <div class="field full"><label>Imagenes extra (URL separadas por |)</label><input name="images" value="${escapeHtml(formatImagesInput(draft.images || []))}"></div>
+      <div class="field full"><label>Subir imagenes a Cloudinary</label><input name="imageFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple></div>
       <div class="field full"><label>Descripcion</label><textarea name="description">${escapeHtml(draft.description || "")}</textarea></div>
+      <div class="field full"><label>Cuidados</label><textarea name="care">${escapeHtml(draft.care || "")}</textarea></div>
       ${!isEdit ? `
       <div class="field">
         <label>Publicacion</label>
@@ -1321,6 +1514,31 @@ function showProductForm(product, products) {
     const category = String(data.get("category") || "women");
     const sizeStock = parseSizeStockInput(String(data.get("sizeStock") || ""));
     const labels = { women: "Mujer", men: "Hombre", wallets: "Carteras", bags: "Bolsos" };
+    const manualImage = String(data.get("image") || "").trim();
+    const manualImages = parseImagesInput(data.get("images") || "");
+    const fileInput = event.currentTarget.querySelector('[name="imageFiles"]');
+    let uploadedUrls = [];
+
+    if (fileInput?.files?.length) {
+      try {
+        showToast("Subiendo imagenes a Cloudinary...");
+        uploadedUrls = await uploadProductImagesFromInput(fileInput.files);
+      } catch (error) {
+        const status = getApiErrorStatus(error);
+        if (status === 401 || status === 403) {
+          showToast(status === 401 ? "Sesion API caducada. Vuelve a entrar en admin." : "Sin permisos para subir imagenes.");
+          throw error;
+        }
+        showToast("Cloudinary no disponible. Se mantienen las URLs manuales.");
+        console.warn("[DCOSTA_ADMIN] Cloudinary upload fallback:", error?.message || error);
+      }
+    }
+
+    const primaryImage = uploadedUrls[0] || manualImage;
+    const extraImages = uploadedUrls.length
+      ? [...uploadedUrls.slice(1), ...manualImages]
+      : manualImages;
+
     const updated = {
       ...draft,
       reference: String(data.get("reference") || "").trim(),
@@ -1328,11 +1546,19 @@ function showProductForm(product, products) {
       category,
       categoryLabel: labels[category] || category,
       price: Number(data.get("price") || 0),
+      salePrice: String(data.get("salePrice") || "").trim() ? Number(data.get("salePrice") || 0) : null,
+      isFeatured: parseBooleanInput(data.get("isFeatured"), false),
+      isActive: parseBooleanInput(data.get("isActive"), true),
       stock: String(data.get("stock") || "").trim(),
       color: String(data.get("color") || "").trim(),
+      material: String(data.get("material") || "").trim(),
+      fit: String(data.get("fit") || "").trim(),
+      badge: String(data.get("badge") || "").trim(),
+      care: String(data.get("care") || "").trim(),
       sizeStock,
       sizes: Object.keys(sizeStock),
-      image: String(data.get("image") || "").trim(),
+      image: primaryImage,
+      images: extraImages,
       description: String(data.get("description") || "").trim(),
     };
     if (!updated.name) {
@@ -1341,6 +1567,10 @@ function showProductForm(product, products) {
     }
     if (updated.price < 0) {
       showToast("El precio no puede ser negativo");
+      return;
+    }
+    if (updated.salePrice !== null && updated.salePrice > updated.price) {
+      showToast("La oferta no puede superar el precio base");
       return;
     }
 
@@ -1439,7 +1669,7 @@ function renderChart(canvasId, points) {
 }
 
 async function renderInicio() {
-  const orders = getOrders();
+  const orders = await getOrders();
   const users = getUsers().filter((u) => u.active);
   const currentUser = getSessionUser();
   const permissions = getPermissions();
@@ -1545,8 +1775,8 @@ async function renderInicio() {
   });
 }
 
-function renderPedidos() {
-  const orders = getOrders();
+async function renderPedidos() {
+  const orders = await getOrders();
   const users = getUsers().filter((u) => u.active);
   const filter = load("dcosta-admin-orders-filter", { q: "", status: "all", assignedTo: "all" });
   const filtered = orders.filter((o) => {
@@ -1583,18 +1813,21 @@ function renderPedidos() {
                 <td>${formatLocalDateTime(o.createdAt || o.date)}</td>
                 <td>${money.format(Number(o.total || 0))}</td>
                 <td>
-                  <select data-order-status="${o.id}" class="inline-select order-status">
+                  <select data-order-status="${escapeHtml(o.id)}" class="inline-select order-status">
                     ${ORDER_STATUSES.map((s) => `<option value="${s}" ${normalizeOrderStatus(o.status) === s ? "selected" : ""}>${s}</option>`).join("")}
                   </select>
                 </td>
                 <td>
-                  <select data-order-assigned="${o.id}" class="inline-select">
+                  <select data-order-assigned="${escapeHtml(o.id)}" class="inline-select">
                     <option value="">Sin asignar</option>
                     ${users.map((u) => `<option value="${u.id}" ${o.assignedTo === u.id ? "selected" : ""}>${escapeHtml(u.name)}</option>`).join("")}
                   </select>
                 </td>
-                <td><input class="inline-input order-notes" data-order-notes="${o.id}" value="${escapeHtml(o.notes || "")}" placeholder="Seguimiento, incidencia, observación..."></td>
-                <td><button class="btn btn-soft" data-order-save="${o.id}">Guardar</button></td>
+                <td><input class="inline-input order-notes" data-order-notes="${escapeHtml(o.id)}" value="${escapeHtml(o.notes || "")}" placeholder="Seguimiento, incidencia, observación..."></td>
+                <td><button class="btn btn-soft" data-order-save="${escapeHtml(o.id)}">Guardar</button></td>
+              </tr>
+              <tr class="order-detail-row">
+                <td colspan="8">${renderOrderDetail(o, users)}</td>
               </tr>
             `).join("") : `<tr><td colspan="8" class="muted">No hay pedidos con ese filtro.</td></tr>`}
           </tbody>
@@ -1610,14 +1843,15 @@ function renderPedidos() {
       assignedTo: document.querySelector("#orders-assigned")?.value || "all",
     });
   };
-  document.querySelector("#orders-q")?.addEventListener("input", () => { persist(); renderPedidos(); });
-  document.querySelector("#orders-status")?.addEventListener("change", () => { persist(); renderPedidos(); });
-  document.querySelector("#orders-assigned")?.addEventListener("change", () => { persist(); renderPedidos(); });
+  document.querySelector("#orders-q")?.addEventListener("input", () => { persist(); render(); });
+  document.querySelector("#orders-status")?.addEventListener("change", () => { persist(); render(); });
+  document.querySelector("#orders-assigned")?.addEventListener("change", () => { persist(); render(); });
 
   view.querySelectorAll("[data-order-save]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const id = btn.dataset.orderSave;
-      const next = getOrders().map((o) => {
+      const currentOrders = await getOrders();
+      const next = currentOrders.map((o) => {
         if (o.id !== id) return o;
         const status = String(view.querySelector(`[data-order-status="${CSS.escape(id)}"]`)?.value || "Pendiente");
         const assignedTo = String(view.querySelector(`[data-order-assigned="${CSS.escape(id)}"]`)?.value || "");
@@ -1629,17 +1863,17 @@ function renderPedidos() {
         }
         return { ...o, status: normalized, assignedTo, notes, statusHistory: history };
       });
-      saveOrders(next);
+      await saveOrders(next);
       addAuditLog("ORDER_UPDATE", `Pedido ${id} actualizado`);
       showToast("Pedido actualizado");
-      renderPedidos();
+      render();
     });
   });
 }
 
-function renderVentas() {
+async function renderVentas() {
   const mode = getSalesMode();
-  const orders = getOrders();
+  const orders = await getOrders();
   const grouped = {};
   orders.forEach((o) => {
     const d = new Date(o.createdAt || o.date || new Date().toISOString());
@@ -1682,8 +1916,8 @@ function renderVentas() {
   renderChart("sales-chart", data);
 }
 
-function renderClientes() {
-  const orders = getOrders();
+async function renderClientes() {
+  const orders = await getOrders();
   const profile = load("dcosta-client-profile", {});
   const account = load("dcosta-client-account", null);
   const session = load("dcosta-client-session", null);
@@ -1736,8 +1970,8 @@ function renderClientes() {
   `;
 }
 
-function renderFacturacion() {
-  const orders = getOrders();
+async function renderFacturacion() {
+  const orders = await getOrders();
   const config = getInvoiceConfig();
   const formatter = new Intl.NumberFormat("es-ES", { style: "currency", currency: config.currency || "EUR" });
   const period = load("dcosta-admin-billing-period", "mes");
@@ -1806,30 +2040,30 @@ function renderFacturacion() {
     const next = Number(event.target.value);
     (async () => {
       if (!await requireManagerReauth("Cambiar IVA")) {
-        renderFacturacion();
+        render();
         return;
       }
       if (Number.isFinite(next) && next >= 0) {
         save("dcosta-admin-invoice", { taxRate: next / 100 });
         addAuditLog("INVOICE_TAX_UPDATE", `IVA actualizado a ${next}%`);
-        renderFacturacion();
+        render();
       }
     })();
   });
   document.querySelector("#currency").addEventListener("change", (event) => {
     (async () => {
       if (!await requireManagerReauth("Cambiar moneda")) {
-        renderFacturacion();
+        render();
         return;
       }
       save("dcosta-admin-invoice", { ...config, currency: event.target.value });
       addAuditLog("INVOICE_CURRENCY_UPDATE", `Moneda: ${event.target.value}`);
-      renderFacturacion();
+      render();
     })();
   });
   document.querySelector("#billing-period").addEventListener("change", (event) => {
     save("dcosta-admin-billing-period", event.target.value);
-    renderFacturacion();
+    render();
   });
 }
 
@@ -1991,10 +2225,53 @@ function renderConfiguracion() {
   });
 }
 
-function renderAuditoria() {
+function getDeletedProductAuditItems(logs) {
+  return logs.flatMap((log) => {
+    if (!["PRODUCT_DELETE", "PRODUCT_BULK_DELETE"].includes(log.action)) return [];
+    const products = Array.isArray(log.products) ? log.products : [];
+    return products
+      .filter((product) => product && productKey(product))
+      .map((product) => ({
+        logId: log.id,
+        deletedAt: log.at,
+        actorName: log.actorName,
+        product,
+      }));
+  });
+}
+
+async function renderAuditoria() {
   const logs = load("dcosta-admin-audit-log", []);
+  const permissions = getPermissions();
+  const products = await getProducts();
+  const existingKeys = new Set(products.map((product) => productKey(product)));
+  const deletedItems = getDeletedProductAuditItems(logs);
   routeTitle.textContent = "Auditoria";
   view.innerHTML = `
+    <article class="card">
+      <h2>Productos eliminados recuperables</h2>
+      <p class="muted" style="margin-bottom:12px;">Cuando elimines productos desde admin, apareceran aqui para poder anadirlos otra vez al catalogo.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha baja</th><th>Producto</th><th>Ref</th><th>Categoria</th><th>Estado</th><th>Accion</th></tr></thead>
+          <tbody>
+            ${deletedItems.length ? deletedItems.map((item, index) => {
+              const exists = existingKeys.has(productKey(item.product));
+              return `
+              <tr>
+                <td>${new Date(item.deletedAt).toLocaleString("es-ES")}</td>
+                <td>${escapeHtml(item.product.name || "-")}</td>
+                <td>${escapeHtml(productRef(item.product) || productKey(item.product))}</td>
+                <td>${escapeHtml(item.product.categoryLabel || item.product.category || "-")}</td>
+                <td><span class="status-chip">${exists ? "Ya esta en catalogo" : "Eliminado"}</span></td>
+                <td><button class="btn btn-soft" data-restore-product="${index}" ${(exists || !permissions.canEditProducts) ? "disabled" : ""}>Anadir al catalogo</button></td>
+              </tr>
+              `;
+            }).join("") : '<tr><td colspan="6" class="muted">No hay productos eliminados recuperables.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </article>
     <article class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;">
         <h2>Historial de cambios</h2>
@@ -2024,15 +2301,38 @@ function renderAuditoria() {
     showToast("Historial limpio");
     renderAuditoria();
   });
+  view.querySelectorAll("[data-restore-product]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const item = deletedItems[Number(button.dataset.restoreProduct)];
+      if (!item?.product) return;
+
+      const currentProducts = await getProducts();
+      const exists = currentProducts.some((product) => productKey(product) === productKey(item.product));
+      if (exists) {
+        showToast("El producto ya esta en catalogo");
+        renderAuditoria();
+        return;
+      }
+
+      const restored = cloneProductForAudit(item.product);
+      await saveProducts([restored, ...currentProducts]);
+      addAuditLog("PRODUCT_RESTORE_FROM_AUDIT", `Restaurado desde auditoria: ${restored.name || productKey(restored)} [${productRef(restored)}]`, {
+        sourceLogId: item.logId,
+        products: [cloneProductForAudit(restored)],
+      });
+      showToast("Producto anadido al catalogo");
+      renderAuditoria();
+    });
+  });
 }
 
-function renderUsuarios() {
+async function renderUsuarios() {
   const permissions = getPermissions();
   const users = getUsers();
   const current = getSessionUser();
   const currentRank = getUserRank(current);
   const goals = getUserGoals();
-  const orders = getOrders();
+  const orders = await getOrders();
   const userPerfMap = orders.reduce((acc, order) => {
     const key = order.assignedTo || "";
     if (!key) return acc;
@@ -2486,14 +2786,14 @@ async function render() {
   if (!freshSession.isAuthenticated) return renderLockScreen();
   document.body.classList.remove("auth-only");
 
-  if (route === "pedidos") return permissions.canEditOrders ? renderPedidos() : renderSinPermiso("Pedidos", "Tu usuario no tiene permiso para gestionar pedidos.");
+  if (route === "pedidos") return permissions.canEditOrders ? await renderPedidos() : renderSinPermiso("Pedidos", "Tu usuario no tiene permiso para gestionar pedidos.");
   if (route === "productos") return permissions.canEditProducts ? renderProductos() : renderSinPermiso("Productos", "Tu usuario no tiene permiso para gestionar productos.");
-  if (route === "ventas") return renderVentas();
-  if (route === "clientes") return renderClientes();
-  if (route === "facturacion") return permissions.canViewBilling ? renderFacturacion() : renderSinPermiso("Facturacion", "Tu usuario no tiene permiso para ver facturacion.");
+  if (route === "ventas") return await renderVentas();
+  if (route === "clientes") return await renderClientes();
+  if (route === "facturacion") return permissions.canViewBilling ? await renderFacturacion() : renderSinPermiso("Facturacion", "Tu usuario no tiene permiso para ver facturacion.");
   if (route === "inventario") return renderInventario();
   if (route === "auditoria") return permissions.canManageUsers ? renderAuditoria() : renderSinPermiso("Auditoria", "Tu usuario no tiene permiso para ver auditoria.");
-  if (route === "usuarios") return permissions.canManageUsers ? renderUsuarios() : renderSinPermiso("Usuarios", "Tu usuario no tiene permiso para gestionar usuarios.");
+  if (route === "usuarios") return permissions.canManageUsers ? await renderUsuarios() : renderSinPermiso("Usuarios", "Tu usuario no tiene permiso para gestionar usuarios.");
   if (route === "configuracion") return permissions.canConfig ? renderConfiguracion() : renderSinPermiso("Configuracion", "Tu usuario no tiene permiso para editar configuracion.");
   return renderInicio();
 }

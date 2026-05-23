@@ -10,11 +10,33 @@ import { errorHandler } from "./common/middleware/error-handler.js";
 
 export const app = express();
 
+function isDevelopmentLoopbackOrigin(origin) {
+  if (env.nodeEnv === "production") return false;
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    const loopbackHosts = ["localhost", "127.0.0.1", "::1", "[::1]"];
+    return ["http:", "https:"].includes(protocol) && loopbackHosts.includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
+if (env.trustProxy) {
+  app.set("trust proxy", 1);
+}
+
 app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || env.corsOrigin.includes("*") || env.corsOrigin.includes(origin) || (origin === "null" && env.corsOrigin.includes("null"))) {
+      if (
+        !origin ||
+        env.corsOrigin.includes("*") ||
+        env.corsOrigin.includes(origin) ||
+        (origin === "null" && env.corsOrigin.includes("null")) ||
+        isDevelopmentLoopbackOrigin(origin)
+      ) {
         callback(null, true);
         return;
       }

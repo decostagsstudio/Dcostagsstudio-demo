@@ -7,6 +7,14 @@ async function loadCatalog() {
   return window.DCOSTA_STORE_API.getProducts();
 }
 
+function visibleProducts(products) {
+  return products.filter((product) => product.isActive !== false);
+}
+
+function displayPrice(product) {
+  return product.salePrice !== null && product.salePrice !== undefined ? Number(product.salePrice) : Number(product.price || 0);
+}
+
 function parseProduct() {
   const params = new URLSearchParams(window.location.search);
   const encoded = params.get("product");
@@ -83,7 +91,7 @@ async function renderProduct(product) {
   const container = document.querySelector("#product-detail");
   const selectedSize = product.sizes?.[0] || "One size";
   const description = product.description || inferDescription(product);
-  const catalog = await loadCatalog();
+  const catalog = visibleProducts(await loadCatalog());
   const currentIndex = catalog.findIndex((item) => item.name === product.name);
   const prevProduct = currentIndex > 0 ? catalog[currentIndex - 1] : catalog[catalog.length - 1];
   const nextProduct = currentIndex >= 0 && currentIndex < catalog.length - 1 ? catalog[currentIndex + 1] : catalog[0];
@@ -114,7 +122,7 @@ async function renderProduct(product) {
       </div>
       <p class="product-kicker">${product.categoryLabel || "Colección"} · ${product.badge || "Disponible"}</p>
       <h1>${product.name}</h1>
-      <p class="product-price">${formatter.format(product.price)}</p>
+      <p class="product-price">${formatter.format(displayPrice(product))}</p>
       <p class="product-stock">${product.stock || "Disponible en tienda"}</p>
       <p class="product-description">${description}</p>
       <dl class="product-specs">
@@ -153,7 +161,7 @@ async function renderProduct(product) {
               <button class="related-card" type="button" data-product-name="${item.name}">
                 <img src="${item.image}" alt="${item.name}">
                 <span>${item.name}</span>
-                <strong>${formatter.format(item.price)}</strong>
+                <strong>${formatter.format(displayPrice(item))}</strong>
               </button>
             `,
             )
@@ -240,7 +248,18 @@ async function renderProduct(product) {
 const product = parseProduct();
 
 if (product) {
-  renderProduct(product);
+  if (product.isActive === false) {
+    document.querySelector("#product-detail").innerHTML = `
+      <div class="product-info">
+        <p class="product-kicker">Producto no disponible</p>
+        <h1>Articulo no visible</h1>
+        <p class="product-description">Vuelve a la tienda para consultar el catalogo activo.</p>
+        <a class="button" href="index.html">Volver a la tienda</a>
+      </div>
+    `;
+  } else {
+    renderProduct(product);
+  }
 } else {
   document.querySelector("#product-detail").innerHTML = `
     <div class="product-info">
@@ -256,7 +275,7 @@ window.addEventListener("storage", async (event) => {
   if (event.key === "dcosta-catalog") {
     const current = parseProduct();
     if (current) {
-      const catalog = await loadCatalog();
+      const catalog = visibleProducts(await loadCatalog());
       const fresh = catalog.find((p) => (p.id && current.id && p.id === current.id) || p.name === current.name);
       if (fresh) renderProduct(fresh);
     }

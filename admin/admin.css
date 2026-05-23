@@ -399,6 +399,69 @@ th {
   min-width: 180px;
 }
 
+.order-detail-row td {
+  padding: 0 10px 12px;
+  background: #f8fafc;
+  white-space: normal;
+}
+
+.order-detail {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.order-detail summary {
+  cursor: pointer;
+  color: #0f172a;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.order-detail-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8fafc;
+}
+
+.order-detail-section h3 {
+  color: #334155;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.order-detail-wide {
+  grid-column: 1 / -1;
+}
+
+.order-items-list,
+.order-history-list {
+  display: grid;
+  gap: 6px;
+}
+
+.order-item-row,
+.order-history-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 110px 70px 100px;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.84rem;
+}
+
+.order-history-row {
+  grid-template-columns: 170px minmax(180px, 1fr) 140px;
+}
+
 .user-menu-panel {
   margin-top: 10px;
   border: 1px solid #e2e8f0;
@@ -548,7 +611,10 @@ th {
 
   .form-grid,
   .sidebar nav,
-  .toolbar {
+  .toolbar,
+  .order-detail-grid,
+  .order-item-row,
+  .order-history-row {
     grid-template-columns: 1fr;
   }
 }

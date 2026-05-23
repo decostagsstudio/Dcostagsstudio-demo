@@ -204,17 +204,17 @@
 </aside>
 
 <form id="checkout-form" novalidate>
-<input type="text" placeholder="Nombre completo">
-<input type="tel" placeholder="Número de teléfono" pattern="[0-9 +]{9,18}" title="Introduce un número de teléfono válido">
-<input type="email" placeholder="Correo electrónico">
+<input name="customer" type="text" placeholder="Nombre completo" required>
+<input name="phone" type="tel" placeholder="Número de teléfono" pattern="[0-9 +]{9,18}" title="Introduce un número de teléfono válido" required>
+<input name="email" type="email" placeholder="Correo electrónico" required>
 
-<select>
+<select name="paymentPreference">
 <option value="">Método futuro preferido</option>
 <option>Tarjeta</option>
 <option>PayPal</option>
 <option>Bizum</option>
 </select>
-<textarea placeholder="Notas sobre tallas, colores o prendas que quieras revisar en tienda"></textarea>
+<textarea name="notes" placeholder="Notas sobre tallas, colores o prendas que quieras revisar en tienda"></textarea>
 
 <button type="submit">Guardar selección</button>
 <p id="form-message" class="form-message" role="status"></p>

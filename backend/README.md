@@ -24,16 +24,32 @@ Backend modular y escalable para la tienda.
    - `npm run db:migrate`
 4. Crear/actualizar usuario director:
    - `npm run db:seed-admin`
-5. Levantar backend:
+5. Cargar catálogo inicial:
+   - `npm run db:seed-catalog`
+6. Levantar backend:
    - `npm run dev`
 
 ## Endpoints iniciales
 - `GET /api/health`
 - `POST /api/auth/login`
 - `GET /api/products`
+- `POST /api/products/images` (director/gerencia, subida directa a Cloudinary)
 - `PUT /api/products/bulk` (director/gerencia)
-- `GET /api/orders`
+- `GET /api/orders` (director/gerencia)
+- `POST /api/orders`
 - `PUT /api/orders` (director/gerencia)
 
 ## Nota de integración frontend
 El frontend actual ya tiene capa `scripts/store-api.js` preparada para cambiar de modo `local` a `api`.
+
+## Imagenes de producto
+Supabase/PostgreSQL sigue siendo la fuente principal de datos. Cloudinary se usa solo para almacenar y optimizar imagenes.
+
+Variables necesarias para subida:
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_FOLDER`
+- `IMAGE_UPLOAD_MAX_MB`
+
+El endpoint de subida usa memoria y no guarda archivos fisicos en el servidor. Solo devuelve URLs `webp` para guardar en `products.image` y `products.images`.

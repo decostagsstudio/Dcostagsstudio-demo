@@ -51,6 +51,14 @@ function readJsonStorage(key, fallback = null) {
   }
 }
 
+function visibleProducts() {
+  return allProducts.filter((product) => product.isActive !== false);
+}
+
+function displayPrice(product) {
+  return product.salePrice !== null && product.salePrice !== undefined ? Number(product.salePrice) : Number(product.price || 0);
+}
+
 function normalizeSizeStock(product) {
   if (product?.sizeStock && typeof product.sizeStock === "object") {
     return Object.entries(product.sizeStock).reduce((acc, [size, qty]) => {
@@ -124,7 +132,7 @@ function createProductCard(product) {
     </div>
     <div class="card-content">
       <h3>${product.name}</h3>
-      <p>${formatter.format(product.price)}</p>
+      <p>${formatter.format(displayPrice(product))}</p>
       <div class="product-meta">
         <span>${product.color || "Neutro"}</span>
         <span>${product.stock || "Disponible"}</span>
@@ -161,22 +169,22 @@ function renderProducts() {
   walletContainer.innerHTML = "";
   bagContainer.innerHTML = "";
 
-  allProducts.filter((product) => product.category === "men").forEach((product) =>
+  visibleProducts().filter((product) => product.category === "men").forEach((product) =>
     mensContainer.appendChild(
       createProductCard(product),
     ),
   );
-  allProducts.filter((product) => product.category === "women").forEach((product) =>
+  visibleProducts().filter((product) => product.category === "women").forEach((product) =>
     womensContainer.appendChild(
       createProductCard(product),
     ),
   );
-  allProducts.filter((product) => product.category === "wallets").forEach((product) =>
+  visibleProducts().filter((product) => product.category === "wallets").forEach((product) =>
     walletContainer.appendChild(
       createProductCard(product),
     ),
   );
-  allProducts.filter((product) => product.category === "bags").forEach((product) =>
+  visibleProducts().filter((product) => product.category === "bags").forEach((product) =>
     bagContainer.appendChild(
       createProductCard(product),
     ),
@@ -383,7 +391,7 @@ function renderSearchResults(query = "") {
     return;
   }
 
-  const matches = allProducts.filter((product) => {
+  const matches = visibleProducts().filter((product) => {
     const searchableText = `${product.name} ${product.categoryLabel}`;
     return normalizeText(searchableText).includes(normalizedQuery);
   });
@@ -400,7 +408,7 @@ function renderSearchResults(query = "") {
         <img src="${product.image}" alt="${product.name}">
         <span>
           <strong>${product.name}</strong>
-          ${product.categoryLabel} - ${formatter.format(product.price)}
+          ${product.categoryLabel} - ${formatter.format(displayPrice(product))}
         </span>
       </button>
     `,
@@ -410,7 +418,7 @@ function renderSearchResults(query = "") {
   searchResults.querySelectorAll(".search-result").forEach((button) => {
     button.addEventListener("click", () => {
       const targetName = button.dataset.productName;
-      const targetProduct = allProducts.find((product) => product.name === targetName);
+      const targetProduct = visibleProducts().find((product) => product.name === targetName);
 
       if (targetProduct) {
         closeSearchPanel();
@@ -451,7 +459,7 @@ function renderSearchResultsEnhanced(query = "") {
     return;
   }
 
-  let matches = allProducts.filter((product) => {
+  let matches = visibleProducts().filter((product) => {
     const searchableText = `${product.name} ${product.categoryLabel} ${product.color} ${product.material} ${product.sizes.join(" ")}`;
     const matchesQuery = !normalizedQuery || normalizeText(searchableText).includes(normalizedQuery);
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
@@ -486,7 +494,7 @@ function renderSearchResultsEnhanced(query = "") {
         <img src="${product.image}" alt="${product.name}">
         <span>
           <strong>${product.name}</strong>
-          ${product.categoryLabel} - ${product.color} - ${formatter.format(product.price)}
+          ${product.categoryLabel} - ${product.color} - ${formatter.format(displayPrice(product))}
         </span>
       </button>
     `,
@@ -496,7 +504,7 @@ function renderSearchResultsEnhanced(query = "") {
   searchResults.querySelectorAll(".search-result").forEach((button) => {
     button.addEventListener("click", () => {
       const targetName = button.dataset.productName;
-      const targetProduct = allProducts.find((product) => product.name === targetName);
+      const targetProduct = visibleProducts().find((product) => product.name === targetName);
 
       if (targetProduct) {
         closeSearchPanel();
@@ -601,19 +609,28 @@ checkoutForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  const orders = await storeApi.getOrders();
+  const data = new FormData(checkoutForm);
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const paymentPreference = String(data.get("paymentPreference") || "").trim();
+  const notes = String(data.get("notes") || "").trim();
   const order = {
-    id: `DC-${Date.now().toString().slice(-6)}`,
+    id: `DC-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
+    customer: String(data.get("customer") || "").trim(),
+    email: String(data.get("email") || "").trim(),
+    phone: String(data.get("phone") || "").trim(),
     createdAt: new Date().toISOString(),
-    status: "En preparación",
+    status: "Pendiente",
     statusDetail: "Selección guardada. Pendiente de activar compra online.",
+    notes: [paymentPreference ? `Método preferido: ${paymentPreference}` : "", notes].filter(Boolean).join(" | "),
     items: cart.map((item) => ({ ...item })),
     total,
   };
 
-  await storeApi.saveOrders([order, ...orders]);
-  formMessage.textContent = "Selección guardada en Mis pedidos. La compra online se activará cuando esté conectada la pasarela de pago.";
+  await storeApi.createOrder(order);
+  cart = [];
+  await storeApi.saveCart(cart);
+  renderCart();
+  formMessage.textContent = "Pedido guardado. Ya aparece en Mis pedidos y en el panel de administración.";
   checkoutForm.reset();
 });
 

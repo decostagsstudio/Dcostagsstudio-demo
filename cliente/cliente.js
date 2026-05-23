@@ -418,7 +418,7 @@ async function renderBag() {
 
 async function renderOrders() {
   const orders = await storeApi.getOrders();
-  const activeOrders = orders.filter((order) => order.status === "En camino").length;
+  const activeOrders = orders.filter((order) => ["En camino", "Enviado"].includes(order.status)).length;
 
   if (!orders.length) {
     view.innerHTML = `
