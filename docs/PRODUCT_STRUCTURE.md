@@ -24,6 +24,7 @@ Esta es la estructura estable para cargar producto real.
 | `sizes` | Tallas separadas por `|` | Si |
 | `sizeStock` | Stock por talla, formato `S:5|M:3` | Si |
 | `image` | URL imagen principal | Si |
+| `image_url` | Alias de `image` para importacion CSV; tiene prioridad si ambas vienen rellenas | No |
 | `images` | URLs extra separadas por `|` | No |
 | `description` | Descripcion comercial | Recomendado |
 

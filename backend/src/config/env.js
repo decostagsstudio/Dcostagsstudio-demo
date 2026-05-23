@@ -54,6 +54,7 @@ export const env = {
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "8h",
   trustProxy: ["1", "true", "yes"].includes(String(process.env.TRUST_PROXY || "").toLowerCase()),
+  serveFrontend: ["1", "true", "yes"].includes(String(process.env.SERVE_FRONTEND || (nodeEnv === "production" ? "true" : "")).toLowerCase()),
   cloudinary: {
     cloudName: cloudinaryCloudName,
     apiKey: cloudinaryApiKey,

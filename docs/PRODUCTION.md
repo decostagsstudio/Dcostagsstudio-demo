@@ -1,84 +1,112 @@
 # Produccion
 
-## Arquitectura prevista
+## Eleccion de despliegue
 
-- Frontend estatico servido desde la raiz del proyecto.
-- Backend Node/Express escuchando en `127.0.0.1:4000`.
-- PostgreSQL como base de datos persistente.
-- Reverse proxy con HTTPS sirviendo la web y reenviando `/api` al backend.
+Arquitectura elegida para el primer despliegue real:
 
-En produccion, `scripts/store-api.js` usa `/api` cuando el dominio no es `localhost`, asi que frontend y API deben publicarse bajo el mismo dominio o bajo un proxy equivalente.
+- Frontend provisional: Vercel.
+- Backend/API: Render Web Service en region `frankfurt`.
+- Base de datos: Supabase PostgreSQL en region UE.
+- Dominio final y DNS: Cloudflare con dominio canonico `dcostagsstudio.com`.
+- Imagenes: Cloudinary para binarios de producto; PostgreSQL guarda solo URLs.
+
+Esta opcion evita mantener un VPS, nginx, PM2 y certificados manuales. El proyecto incluye `render.yaml` para desplegar el backend y ejecutar migraciones antes de publicar cada build.
+
+## Dominio
+
+Dominio provisional publico de Vercel:
+
+```text
+https://dcostagsstudio-demo.vercel.app
+```
+
+La URL con formato `dcostagsstudio-demo-cve78f5xi-dcostagsstudio.vercel.app` es una URL de deployment/preview y puede seguir protegida por Vercel Authentication aunque el alias publico funcione.
+
+Dominio canonico final:
+
+```text
+https://dcostagsstudio.com
+```
+
+Alias final:
+
+```text
+https://www.dcostagsstudio.com
+```
+
+Mientras se use el dominio provisional, `STORE_PUBLIC_URL` apunta a Vercel y `CORS_ORIGIN` acepta la URL provisional, el dominio canonico y `www`.
+
+Si al abrir Vercel aparece `Authentication Required`, no es un fallo del frontend: es Deployment Protection. Para demo publica, desactivalo en Vercel > Project Settings > Deployment Protection o usa un bypass token temporal.
+
+Cuando se compre/conecte el dominio final, cambia `STORE_PUBLIC_URL` a `https://dcostagsstudio.com` y añade el dominio custom en el hosting que vaya a servir la web publica.
+
+## Vercel
+
+El despliegue de Vercel usa:
+
+- Build command: `npm run build`
+- Output directory: `dist`
+- Root directory: raiz del repositorio
+
+El script de build copia HTML, CSS, JS, `data`, `admin` y `cliente` a `dist`. Esto evita que Vercel publique solo `index.html`.
+
+El archivo `vercel.json` deja rutas directas para:
+
+- `/admin` -> `/admin/index.html`
+- `/cliente` -> `/cliente/index.html`
+
+Vercel puede servir la web estatica. La API real sigue en Render/Supabase; si se quiere que admin guarde contra backend desde Vercel, hay que configurar un rewrite de `/api/*` hacia la URL publica del backend cuando Render este desplegado.
+
+## Supabase PostgreSQL
+
+1. Crea un proyecto Supabase en region UE.
+2. Abre Project Settings > Database.
+3. Copia la connection string URI.
+4. Para Render, usa preferentemente el Transaction Pooler.
+5. Asegurate de que la URL termina con `?sslmode=require`.
+6. Guarda esa URL en `DATABASE_URL`.
+
+El backend ya activa SSL cuando detecta Supabase o `sslmode=require`.
 
 ## Variables de entorno
 
-1. Copia `backend/.env.production.example` a `backend/.env`.
-2. Cambia estos valores antes de arrancar:
-   - `CORS_ORIGIN`: dominio publico final, por ejemplo `https://dcostagsstudio.com,https://www.dcostagsstudio.com`.
-   - `DATABASE_URL`: conexion PostgreSQL real.
-   - `JWT_SECRET`: secreto aleatorio de al menos 32 caracteres.
-   - `TRUST_PROXY=true` si hay nginx, Caddy, Cloudflare, Railway, Render, Fly.io u otro proxy delante.
-   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`: credenciales de Cloudinary.
-   - `CLOUDINARY_FOLDER`: carpeta de destino para productos, por ejemplo `dcosta/products`.
-   - `STORE_PUBLIC_URL`: URL publica de la tienda.
-   - `ORDER_NOTIFICATION_WEBHOOK_URL`: webhook opcional para avisos de pedido.
-   - `ORDER_NOTIFICATION_WEBHOOK_SECRET`: secreto opcional enviado en `X-DCOSTA-Webhook-Secret`.
-   - `ORDER_NOTIFICATION_TO_EMAIL`: email interno de destino si el webhook genera correos.
-   - `SEED_DIRECTOR_PASSWORD`: contrasena inicial fuerte para ejecutar `npm run db:seed-admin` en produccion.
+Archivo local preparado:
 
-El backend bloquea el arranque en `NODE_ENV=production` si `CORS_ORIGIN=*` o si `JWT_SECRET` es inseguro. Si faltan credenciales de Cloudinary, Supabase/PostgreSQL sigue funcionando y solo queda desactivada la subida de imagenes.
-
-En produccion, el seed del usuario director falla si no se define `SEED_DIRECTOR_PASSWORD` o si se mantiene la contrasena por defecto de desarrollo.
-
-## Cloudinary
-
-Cloudinary se usa solo para almacenar y optimizar binarios de imagen. Supabase/PostgreSQL sigue siendo la fuente principal de datos del proyecto.
-
-En PostgreSQL se guardan solo estas URLs devueltas por Cloudinary:
-
-- `products.image`: URL principal del producto.
-- `products.images`: URLs extra del producto.
-
-No se guardan imagenes fisicas en el servidor Express. Las subidas pasan por memoria y se envian directamente a Cloudinary.
-
-### Datos exactos que debes copiar desde Cloudinary
-
-En el panel de Cloudinary, entra en `Dashboard` y copia:
-
-- `Cloud name` -> `CLOUDINARY_CLOUD_NAME`
-- `API Key` -> `CLOUDINARY_API_KEY`
-- `API Secret` -> `CLOUDINARY_API_SECRET`
-
-Despues decide una carpeta logica para productos:
-
-- `CLOUDINARY_FOLDER=dcosta/products`
-
-No copies el `API Environment variable` completo si contiene valores que no quieres compartir. En este proyecto se usan variables separadas para que el `.env` sea claro.
-
-Las imagenes se suben con conversion automatica a `webp`, calidad automatica y limite de ancho para mantener el catalogo optimizado.
-
-## Primer despliegue
-
-Desde `backend/`:
-
-```bash
-npm ci --omit=dev
-npm run db:migrate
-SEED_DIRECTOR_PASSWORD='cambia-esto-por-una-contrasena-fuerte' npm run db:seed-admin
-npm run db:seed-catalog
-npm start
+```text
+backend/.env.production
 ```
 
-En Windows PowerShell:
+Este archivo no debe versionarse. Contiene valores reales de dominio provisional y placeholders `CHANGE_ME` para secretos:
 
-```powershell
-$env:SEED_DIRECTOR_PASSWORD="cambia-esto-por-una-contrasena-fuerte"
-npm run db:seed-admin
-```
+- `DATABASE_URL`: URI de Supabase.
+- `JWT_SECRET`: secreto aleatorio de al menos 32 caracteres.
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: credenciales de Cloudinary.
+- `SEED_DIRECTOR_PASSWORD`: contrasena inicial fuerte para crear el usuario director.
+- `ORDER_NOTIFICATION_WEBHOOK_URL`: opcional si se conectan avisos de pedidos.
 
-Comprueba salud:
+Genera `JWT_SECRET` con:
 
 ```bash
-curl https://tu-dominio.com/api/health
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+En Render, pega estas variables en Environment. El `render.yaml` deja los secretos como `sync: false` para que Render los pida o los mantenga fuera del repositorio.
+
+## Primer despliegue en Render
+
+1. Sube el repositorio a GitHub/GitLab/Bitbucket.
+2. En Render, crea Blueprint desde `render.yaml`.
+3. Rellena los secretos marcados con `sync: false`.
+4. Verifica que el servicio usa:
+   - Build command: `cd backend && npm ci --omit=dev`
+   - Pre-deploy command: `cd backend && npm run db:migrate`
+   - Start command: `cd backend && npm start`
+   - Health check path: `/api/health`
+5. Lanza el primer deploy.
+6. Cuando Render de la URL temporal, comprueba:
+
+```bash
+curl https://dcosta-store.onrender.com/api/health
 ```
 
 Respuesta esperada:
@@ -87,42 +115,40 @@ Respuesta esperada:
 {"ok":true,"service":"dcosta-store-backend"}
 ```
 
-## Proxy recomendado
+## Seed inicial
 
-Ejemplo nginx:
+Despues de que las migraciones hayan corrido correctamente, ejecuta una vez en Render Shell:
 
-```nginx
-server {
-  listen 443 ssl http2;
-  server_name dcostagsstudio.com www.dcostagsstudio.com;
-
-  root /var/www/dcosta-store;
-  index index.html;
-
-  location /api/ {
-    proxy_pass http://127.0.0.1:4000/api/;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-
-  location / {
-    try_files $uri $uri/ /index.html;
-  }
-}
+```bash
+cd backend && npm run db:seed-admin
 ```
 
-## Checklist antes de abrir al publico
+Si aun quieres cargar el catalogo demo inicial:
 
-- HTTPS activo y redireccion HTTP a HTTPS.
-- `backend/.env` no versionado.
-- `CORS_ORIGIN` sin comodines.
-- Migraciones ejecutadas.
-- Catalogo sembrado o importado desde admin.
-- Usuario director creado con `npm run db:seed-admin` y contrasena cambiada.
-- Cloudinary configurado y probado desde admin > Productos.
-- Webhook de pedido configurado o decision explicita de operar sin avisos automaticos.
-- Backups de PostgreSQL programados.
-- Proceso gestionado con systemd, PM2 o el gestor de la plataforma.
+```bash
+cd backend && npm run db:seed-catalog
+```
+
+Para catalogo real, usa admin > Productos > Importar CSV siguiendo `docs/PRODUCT_IMPORT.md`.
+
+## Pruebas antes de abrir
+
+- La URL de Vercel no muestra `Authentication Required`.
+- Home carga desde la URL provisional.
+- Admin carga desde `/admin`.
+- `/api/health` responde 200 en Render.
+- Login director funciona cuando Vercel tenga `/api` proxyeado o cuando se use la URL Render que sirve frontend + API.
+- `GET /api/products` devuelve JSON.
+- Subida de imagen en admin devuelve URLs Cloudinary `webp`.
+- Importacion CSV de 2 o 3 productos reales funciona.
+- Producto con `isActive=false` no aparece en tienda.
+- Pedido de prueba entra en admin.
+
+## Checklist operativo
+
+- Activar backups en Supabase; en produccion real, usar plan con backups diarios.
+- Mantener `CORS_ORIGIN` sin comodines.
+- No versionar `.env`, `.env.production` ni secretos.
+- Cambiar la contrasena del director tras el primer acceso.
+- Revisar logs de Render despues de cada deploy.
+- Probar restauracion/export de base de datos antes de campanas o carga masiva.

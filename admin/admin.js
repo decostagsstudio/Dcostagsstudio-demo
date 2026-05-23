@@ -908,30 +908,7 @@ function productsToCsv(products) {
 }
 
 function productImportTemplateCsv() {
-  const sample = [
-    "real-001",
-    "REF-001",
-    "Nombre producto real",
-    "women",
-    "Mujer",
-    "59.90",
-    "",
-    "false",
-    "true",
-    "Disponible en tienda",
-    "negro",
-    "Algodon",
-    "Corte regular",
-    "Nuevo",
-    "Lavar en frio",
-    "S|M|L",
-    "S:3|M:5|L:2",
-    "https://example.com/imagen-principal.jpg",
-    "https://res.cloudinary.com/tu-cloud-name/image/upload/f_auto,q_auto/v0000000000/dcosta/products/producto-principal.webp",
-    "https://example.com/imagen-2.jpg|https://example.com/imagen-3.jpg",
-    "Descripcion comercial del producto",
-  ];
-  return [PRODUCT_CSV_HEADERS, sample].map((row) => row.map(toCsvValue).join(",")).join("\n");
+  return `${PRODUCT_CSV_HEADERS.join(",")}\n`;
 }
 
 function parseCsvLine(line) {

@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: dcosta-store
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: cd backend && npm ci --omit=dev
+    preDeployCommand: cd backend && npm run db:migrate
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SERVE_FRONTEND
+        value: true
+      - key: TRUST_PROXY
+        value: true
+      - key: CORS_ORIGIN
+        value: https://dcostagsstudio-demo.vercel.app,https://dcostagsstudio-demo-cve78f5xi-dcostagsstudio.vercel.app,https://dcostagsstudio.com,https://www.dcostagsstudio.com
+      - key: STORE_PUBLIC_URL
+        value: https://dcostagsstudio-demo.vercel.app
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: dcosta/products
+      - key: IMAGE_UPLOAD_MAX_MB
+        value: 8
+      - key: ORDER_NOTIFICATION_WEBHOOK_URL
+        sync: false
+      - key: ORDER_NOTIFICATION_WEBHOOK_SECRET
+        sync: false
+      - key: ORDER_NOTIFICATION_TO_EMAIL
+        value: pedidos@dcostagsstudio.com
+      - key: SEED_DIRECTOR_EMAIL
+        value: director@dcostagsstudio.com
+      - key: SEED_DIRECTOR_PASSWORD
+        sync: false
+      - key: SEED_DIRECTOR_NAME
+        value: Direccion
