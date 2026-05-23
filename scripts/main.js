@@ -624,6 +624,8 @@ checkoutForm.addEventListener("submit", async (event) => {
     notes: [paymentPreference ? `Método preferido: ${paymentPreference}` : "", notes].filter(Boolean).join(" | "),
     items: cart.map((item) => ({ ...item })),
     total,
+    legalAcceptedAt: new Date().toISOString(),
+    legalVersion: storeApi.legalVersion,
   };
 
   await storeApi.createOrder(order);

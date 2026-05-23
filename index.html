@@ -11,6 +11,7 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles/main.css">
 <script defer src="data/catalog.js"></script>
+<script defer src="scripts/runtime-config.js"></script>
 <script defer src="scripts/store-api.js"></script>
 <script defer src="scripts/main.js"></script>
 </head>
@@ -220,6 +221,10 @@
 <option>Bizum</option>
 </select>
 <textarea name="notes" placeholder="Notas sobre tallas, colores o prendas que quieras revisar en tienda"></textarea>
+<label class="legal-consent">
+<input name="legalAccepted" type="checkbox" required>
+<span>Acepto el uso de mis datos para gestionar esta solicitud y he leido el <a href="legal.html" target="_blank" rel="noopener">aviso legal y la politica de privacidad</a>.</span>
+</label>
 
 <button type="submit">Enviar solicitud</button>
 <p id="form-message" class="form-message" role="status"></p>

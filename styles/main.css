@@ -1354,6 +1354,25 @@ font-family:Arial,sans-serif;
 line-height:1.5;
 }
 
+.legal-consent{
+display:grid;
+grid-template-columns:auto minmax(0,1fr);
+gap:10px;
+align-items:start;
+color:#5f554c;
+font-size:.82rem;
+line-height:1.5;
+}
+
+.legal-consent input{
+margin-top:3px;
+}
+
+.legal-consent a{
+color:#6f5235;
+font-weight:700;
+}
+
 .checkout form button{
 padding:15px;
 border:none;

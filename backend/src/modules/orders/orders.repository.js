@@ -15,6 +15,8 @@ function mapOrderRow(row) {
     createdAt: row.created_at,
     items: row.items || [],
     statusHistory: row.status_history || [],
+    legalAcceptedAt: row.legal_accepted_at || "",
+    legalVersion: row.legal_version || "",
   };
 }
 
@@ -28,9 +30,9 @@ export async function getAllOrders() {
 export async function insertOrder(order) {
   const result = await db.query(
     `INSERT INTO orders
-     (id, customer, email, phone, dni, status, status_detail, notes, assigned_to, total, created_at, items, status_history)
+     (id, customer, email, phone, dni, status, status_detail, notes, assigned_to, total, created_at, items, status_history, legal_accepted_at, legal_version)
      VALUES
-     ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+     ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
      RETURNING *`,
     [
       order.id,
@@ -46,6 +48,8 @@ export async function insertOrder(order) {
       order.createdAt ? new Date(order.createdAt) : new Date(),
       JSON.stringify(order.items || []),
       JSON.stringify(order.statusHistory || []),
+      order.legalAcceptedAt ? new Date(order.legalAcceptedAt) : null,
+      order.legalVersion || "",
     ],
   );
   return mapOrderRow(result.rows[0]);
@@ -59,9 +63,9 @@ export async function replaceOrders(orders) {
     for (const o of orders) {
       await client.query(
         `INSERT INTO orders
-         (id, customer, email, phone, dni, status, status_detail, notes, assigned_to, total, created_at, items, status_history)
+         (id, customer, email, phone, dni, status, status_detail, notes, assigned_to, total, created_at, items, status_history, legal_accepted_at, legal_version)
          VALUES
-         ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+         ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           o.id,
           o.customer || "",
@@ -76,6 +80,8 @@ export async function replaceOrders(orders) {
           o.createdAt ? new Date(o.createdAt) : new Date(),
           JSON.stringify(o.items || []),
           JSON.stringify(o.statusHistory || []),
+          o.legalAcceptedAt ? new Date(o.legalAcceptedAt) : null,
+          o.legalVersion || "",
         ],
       );
     }

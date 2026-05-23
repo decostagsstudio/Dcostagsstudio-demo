@@ -11,6 +11,7 @@ const DCOSTA_DATA_SOURCE = String(
   DCOSTA_RUNTIME_CONFIG.dataSource ||
   (DCOSTA_RUNTIME_CONFIG.apiBaseUrl || DCOSTA_IS_BACKEND_ORIGIN ? "api" : "local"),
 ).toLowerCase();
+const DCOSTA_LEGAL_VERSION = "2026-05-23";
 
 const DCOSTA_STORAGE_KEYS = {
   catalog: "dcosta-catalog",
@@ -340,4 +341,5 @@ window.DCOSTA_STORE_API = {
   getAuthSession,
   keys: DCOSTA_STORAGE_KEYS,
   categoryLabels: DCOSTA_CATEGORY_LABELS,
+  legalVersion: DCOSTA_LEGAL_VERSION,
 };

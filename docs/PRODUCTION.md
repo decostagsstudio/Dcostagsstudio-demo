@@ -57,6 +57,15 @@ El archivo `vercel.json` deja rutas directas para:
 
 Vercel puede servir la web estatica. La API real sigue en Render/Supabase; si se quiere que admin guarde contra backend desde Vercel, hay que configurar un rewrite de `/api/*` hacia la URL publica del backend cuando Render este desplegado.
 
+Alternativa recomendada para este repositorio: definir variables de entorno en Vercel y dejar que el build genere `dist/scripts/runtime-config.js`:
+
+```text
+DCOSTA_DATA_SOURCE=api
+DCOSTA_API_BASE_URL=https://dcosta-store.onrender.com/api
+```
+
+Sin esas variables, la web publica sigue en modo local para que el catalogo no dependa de un backend sin desplegar.
+
 ## Supabase PostgreSQL
 
 1. Crea un proyecto Supabase en region UE.
@@ -107,6 +116,7 @@ En Render, pega estas variables en Environment. El `render.yaml` deja los secret
 
 ```bash
 curl https://dcosta-store.onrender.com/api/health
+curl https://dcosta-store.onrender.com/api/ready
 ```
 
 Respuesta esperada:

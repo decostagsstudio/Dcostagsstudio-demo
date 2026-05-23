@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { db } from "./config/database.js";
 import { env } from "./config/env.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { productsRouter } from "./modules/products/products.routes.js";
@@ -11,6 +12,7 @@ import { notFoundHandler } from "./common/middleware/not-found.js";
 import { errorHandler } from "./common/middleware/error-handler.js";
 
 export const app = express();
+app.disable("x-powered-by");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendRoot = path.resolve(__dirname, "../..");
@@ -65,6 +67,16 @@ app.use(express.json({ limit: "2mb" }));
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "dcosta-store-backend" });
+});
+
+app.get("/api/ready", async (_req, res, next) => {
+  try {
+    await db.query("SELECT 1");
+    res.json({ ok: true, database: "ready" });
+  } catch (error) {
+    error.statusCode = 503;
+    next(error);
+  }
 });
 
 app.use("/api/auth", authRouter);

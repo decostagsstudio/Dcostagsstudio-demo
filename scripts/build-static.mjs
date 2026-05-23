@@ -41,4 +41,14 @@ await fs.rm(outputDir, { recursive: true, force: true });
 await fs.mkdir(outputDir, { recursive: true });
 await Promise.all(entries.map(copyEntry));
 
+const runtimeConfig = {
+  ...(process.env.DCOSTA_DATA_SOURCE ? { dataSource: process.env.DCOSTA_DATA_SOURCE } : {}),
+  ...(process.env.DCOSTA_API_BASE_URL ? { apiBaseUrl: process.env.DCOSTA_API_BASE_URL } : {}),
+};
+
+await fs.writeFile(
+  path.join(outputDir, "scripts", "runtime-config.js"),
+  `window.DCOSTA_CONFIG = ${JSON.stringify(runtimeConfig, null, 2)};\n`,
+);
+
 console.log(`Static site built in ${path.relative(rootDir, outputDir)}`);

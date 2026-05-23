@@ -31,6 +31,7 @@ Backend modular y escalable para la tienda.
 
 ## Endpoints iniciales
 - `GET /api/health`
+- `GET /api/ready`
 - `POST /api/auth/login`
 - `GET /api/products`
 - `POST /api/products/images` (director/gerencia, subida directa a Cloudinary)
@@ -41,6 +42,13 @@ Backend modular y escalable para la tienda.
 
 ## Nota de integración frontend
 El frontend actual ya tiene capa `scripts/store-api.js` preparada para cambiar de modo `local` a `api`.
+
+Para que Vercel use el backend real, define estas variables en Vercel antes del build:
+
+- `DCOSTA_DATA_SOURCE=api`
+- `DCOSTA_API_BASE_URL=https://TU-BACKEND.onrender.com/api`
+
+El build genera `dist/scripts/runtime-config.js` con esos valores. Si no estan definidos, Vercel queda en modo local para que la tienda publica no rompa mientras el backend no este desplegado.
 
 ## Imagenes de producto
 Supabase/PostgreSQL sigue siendo la fuente principal de datos. Cloudinary se usa solo para almacenar y optimizar imagenes.

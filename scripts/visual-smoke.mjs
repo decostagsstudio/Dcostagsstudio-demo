@@ -399,6 +399,7 @@ async function runVisualFlow(cdp, baseUrl) {
     document.querySelector('[name="phone"]').value = '+34 600 000 000';
     document.querySelector('[name="email"]').value = 'visual@example.com';
     document.querySelector('[name="notes"]').value = 'Pedido de smoke visual';
+    document.querySelector('[name="legalAccepted"]').checked = true;
     document.querySelector('#checkout-form button[type="submit"]').click();
     return true;
   })()`);

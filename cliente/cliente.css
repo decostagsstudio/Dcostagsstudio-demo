@@ -244,6 +244,30 @@ line-height:1.5;
 grid-column:1/-1;
 }
 
+.legal-consent{
+grid-column:1/-1;
+display:grid !important;
+grid-template-columns:auto minmax(0,1fr);
+align-items:start;
+gap:10px !important;
+color:#5f554c !important;
+font-size:.78rem !important;
+font-weight:500 !important;
+letter-spacing:0 !important;
+line-height:1.5;
+text-transform:none !important;
+}
+
+.legal-consent input{
+width:auto !important;
+margin-top:3px;
+}
+
+.legal-consent a{
+color:#6f5235;
+font-weight:700;
+}
+
 .form-link-row{
 grid-column:1/-1;
 margin-top:-8px;

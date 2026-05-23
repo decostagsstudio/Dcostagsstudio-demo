@@ -30,6 +30,8 @@ export const orderSchema = z.object({
   createdAt: z.string().optional().default(""),
   items: z.array(orderItemSchema),
   statusHistory: z.array(statusHistorySchema).optional().default([]),
+  legalAcceptedAt: z.string().optional().default(""),
+  legalVersion: z.string().optional().default(""),
 });
 
 export const ordersBulkSchema = z.object({
@@ -40,4 +42,6 @@ export const orderCreateSchema = orderSchema.omit({ assignedTo: true }).extend({
   id: z.string().min(1).optional(),
   status: z.string().optional().default("Pendiente"),
   createdAt: z.string().optional().default(""),
+  legalAcceptedAt: z.string().min(1),
+  legalVersion: z.string().min(1),
 });

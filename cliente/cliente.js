@@ -194,6 +194,10 @@ function renderAccess() {
           <label>Repetir contraseña
             <input name="confirmPassword" type="password" minlength="6" required>
           </label>
+          <label class="form-wide legal-consent">
+            <input name="legalAccepted" type="checkbox" required>
+            <span>Acepto el uso de mis datos para crear la cuenta local y he leido el <a href="../legal.html" target="_blank" rel="noopener">aviso legal y la politica de privacidad</a>.</span>
+          </label>
           <div class="form-actions">
             <button class="client-button" type="submit">Crear cuenta local</button>
           </div>
@@ -269,13 +273,32 @@ function renderAccess() {
     const postalCode = data.get("postalCode").trim();
     const password = data.get("password").trim();
     const confirmPassword = data.get("confirmPassword").trim();
+    const legalAccepted = data.get("legalAccepted") === "on";
 
     if (password !== confirmPassword) {
       document.querySelector("#register-message").textContent = "Las contraseñas no coinciden.";
       return;
     }
 
-    saveAccount({ name, lastName, email, dni, phone, address, city, province, postalCode, password });
+    if (!legalAccepted) {
+      document.querySelector("#register-message").textContent = "Debes aceptar el aviso legal y la politica de privacidad.";
+      return;
+    }
+
+    saveAccount({
+      name,
+      lastName,
+      email,
+      dni,
+      phone,
+      address,
+      city,
+      province,
+      postalCode,
+      password,
+      legalAcceptedAt: new Date().toISOString(),
+      legalVersion: window.DCOSTA_STORE_API?.legalVersion || "2026-05-23",
+    });
     saveProfile({
       ...profile,
       name,
