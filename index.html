@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCOSTA GS STUDIO</title>
+<meta name="description" content="Moda seleccionada en Garrucha. Catalogo online, solicitudes de pedido y atencion en tienda de DCOSTA GS STUDIO.">
+<meta property="og:title" content="DCOSTA GS STUDIO">
+<meta property="og:description" content="Catalogo online y atencion en tienda en Garrucha.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="styles/main.css">
+<script defer src="data/catalog.js"></script>
+<script defer src="scripts/store-api.js"></script>
+<script defer src="scripts/main.js"></script>
+</head>
+
+<body>
+
+<header class="navbar">
+<a class="brand" href="#">DCOSTA GS STUDIO</a>
+
+<nav>
+<a href="#mujer">Mujer</a>
+<a href="#hombre">Hombre</a>
+<a href="#accesorios">Accesorios</a>
+</nav>
+
+<div class="header-actions">
+<a class="account" href="cliente/index.html" aria-label="Área cliente">
+<span class="account-icon" aria-hidden="true"></span>
+<span class="account-label">Cuenta</span>
+</a>
+<button class="favorites" id="favorites-button" type="button" aria-label="Ver favoritos" aria-expanded="false">
+<span class="favorites-icon" aria-hidden="true">♥</span>
+<span class="favorites-label">Favoritos</span>
+<span id="favorites-count">0</span>
+</button>
+<button class="cart" id="cart-button" type="button" aria-label="Ver bolsa" aria-expanded="false">
+<span class="cart-icon" aria-hidden="true"></span>
+<span class="cart-label">Bolsa</span>
+<span id="cart-count">0</span>
+</button>
+<button class="search" id="search-button" type="button" aria-label="Buscar artículos" aria-expanded="false">
+<span class="search-icon" aria-hidden="true"></span>
+<span class="search-label">Buscar</span>
+</button>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</header>
+
+<section class="hero">
+<div class="hero-slider" aria-hidden="true">
+<span class="hero-slide is-active"></span>
+<span class="hero-slide"></span>
+<span class="hero-slide"></span>
+</div>
+<div class="overlay">
+<h1>DCOSTA GS STUDIO</h1>
+<p>Moda seleccionada en Garrucha con una lectura actual, limpia y pensada para diario.</p>
+<button class="button" id="discover-button" type="button">Ver colección</button>
+</div>
+</section>
+
+<section id="search-panel" class="search-panel" aria-hidden="true">
+<div class="search-box">
+<button class="close-search" id="close-search" type="button" aria-label="Cerrar búsqueda">Cerrar</button>
+<h2>Buscar</h2>
+<input id="search-input" class="search-input" type="search" placeholder="Buscar artículos" autocomplete="off">
+<div class="search-controls">
+<label class="search-control">
+<span>Categoría</span>
+<select id="search-category">
+<option value="all">Todas</option>
+<option value="men">Hombre</option>
+<option value="women">Mujer</option>
+<option value="wallets">Carteras</option>
+<option value="bags">Bolsos</option>
+</select>
+</label>
+<label class="search-control">
+<span>Talla</span>
+<select id="search-size">
+<option value="all">Todas</option>
+<option value="XS">XS</option>
+<option value="S">S</option>
+<option value="M">M</option>
+<option value="L">L</option>
+<option value="XL">XL</option>
+<option value="One size">Única</option>
+</select>
+</label>
+<label class="search-control">
+<span>Color</span>
+<select id="search-color">
+<option value="all">Todos</option>
+<option value="negro">Negro</option>
+<option value="blanco">Blanco</option>
+<option value="beige">Beige</option>
+<option value="azul">Azul</option>
+<option value="marrón">Marrón</option>
+</select>
+</label>
+<label class="search-control">
+<span>Orden</span>
+<select id="search-sort">
+<option value="relevance">Relevancia</option>
+<option value="price-asc">Precio: menor a mayor</option>
+<option value="price-desc">Precio: mayor a menor</option>
+</select>
+</label>
+</div>
+<div class="search-suggestions" aria-label="Sugerencias de búsqueda">
+<button class="search-suggestion" type="button" data-query="blazer">Blazer</button>
+<button class="search-suggestion" type="button" data-query="camisa">Camisa</button>
+<button class="search-suggestion" type="button" data-query="bolso">Bolso</button>
+<button class="search-suggestion" type="button" data-query="cartera">Cartera</button>
+<button class="search-suggestion" type="button" data-query="abrigo">Abrigo</button>
+</div>
+<div id="search-results" class="search-results">
+<p class="empty-search">Escribe para buscar en la colección.</p>
+</div>
+</div>
+</section>
+
+<section id="favorites-panel" class="favorites-panel" aria-hidden="true">
+<div class="favorites-box">
+<button class="close-favorites" id="close-favorites" type="button" aria-label="Cerrar favoritos">Cerrar</button>
+<h2>Favoritos</h2>
+<div id="favorite-items" class="favorite-items">
+<p class="empty-favorites">No tienes favoritos todavía.</p>
+</div>
+</div>
+</section>
+
+<section class="service-notes" aria-label="Ventajas de compra">
+<article>
+<span class="note-icon note-icon-shipping" aria-hidden="true"></span>
+<h2>Selección cuidada</h2>
+<p>Piezas pensadas para tienda física y venta online.</p>
+</article>
+<article>
+<span class="note-icon note-icon-returns" aria-hidden="true"></span>
+<h2>Cambios y devoluciones</h2>
+<p>Política preparada para el lanzamiento de venta online.</p>
+</article>
+<article>
+<span class="note-icon note-icon-secure" aria-hidden="true"></span>
+<h2>Pedido asistido</h2>
+<p>Envia tu seleccion para que tienda confirme disponibilidad y siguiente paso.</p>
+</article>
+<article>
+<span class="note-icon note-icon-store" aria-hidden="true"></span>
+<h2>Recoger en tienda</h2>
+<p>Calle Mayor, 43, Garrucha.</p>
+</article>
+</section>
+
+<main>
+<section id="mujer" class="products">
+<div class="section-heading">
+<h2>Mujer</h2>
+<p>Prendas versátiles con siluetas actuales, tejidos cómodos y colores fáciles de combinar.</p>
+</div>
+<div class="grid" id="womens-products"></div>
+</section>
+
+<section id="hombre" class="products">
+<div class="section-heading">
+<h2>Hombre</h2>
+<p>Básicos elevados, capas ligeras y accesorios sobrios para construir looks diarios.</p>
+</div>
+<div class="grid" id="mens-products"></div>
+</section>
+
+<section id="accesorios" class="products accessories">
+<div class="section-heading">
+<h2>Accesorios</h2>
+<p>Bolsos, carteras y piezas funcionales para completar la colección.</p>
+</div>
+
+<div class="product-group">
+<h3>Carteras para hombre</h3>
+<div class="grid" id="wallet-products"></div>
+</div>
+
+<div class="product-group">
+<h3>Bolsos</h3>
+<div class="grid" id="bag-products"></div>
+</div>
+</section>
+
+<section id="checkout" class="checkout" aria-hidden="true">
+<div class="checkout-panel">
+<button class="close-checkout" id="close-checkout" type="button" aria-label="Cerrar bolsa">Cerrar</button>
+<h2>Bolsa de compra</h2>
+<p class="checkout-note">La compra online con pago no esta activa. Puedes enviar una solicitud de pedido para que tienda confirme disponibilidad, tallas y recogida o envio.</p>
+
+<div class="checkout-layout">
+<aside class="order-summary" aria-live="polite">
+<h3>Resumen</h3>
+<div id="cart-items" class="cart-items">
+<p class="empty-cart">Tu bolsa está vacía.</p>
+</div>
+<div class="total-row">
+<span>Total</span>
+<strong id="cart-total">0,00 €</strong>
+</div>
+</aside>
+
+<form id="checkout-form" novalidate>
+<input name="customer" type="text" placeholder="Nombre completo" required>
+<input name="phone" type="tel" placeholder="Número de teléfono" pattern="[0-9 +]{9,18}" title="Introduce un número de teléfono válido" required>
+<input name="email" type="email" placeholder="Correo electrónico" required>
+
+<select name="paymentPreference">
+<option value="">Método futuro preferido</option>
+<option>Tarjeta</option>
+<option>PayPal</option>
+<option>Bizum</option>
+</select>
+<textarea name="notes" placeholder="Notas sobre tallas, colores o prendas que quieras revisar en tienda"></textarea>
+
+<button type="submit">Enviar solicitud</button>
+<p id="form-message" class="form-message" role="status"></p>
+</form>
+</div>
+</div>
+</section>
+
+<section class="brand-story" aria-label="Sobre DCOSTA GS STUDIO">
+<div>
+<span>Estudio de selección</span>
+<h2>Una tienda preparada para crecer hacia ecommerce sin perder trato local.</h2>
+</div>
+<p>DCOSTA GS STUDIO combina catálogo digital, atención en tienda y una experiencia online pensada para evolucionar hacia compra completa con pasarela de pago, stock y envíos.</p>
+</section>
+
+<section id="guia" class="info-grid" aria-label="Información de compra">
+<article>
+<h2>Guía de tallas</h2>
+<p>Las fichas incluyen tallas disponibles y recomendación de ajuste. La siguiente fase puede añadir medidas por prenda y equivalencias.</p>
+</article>
+<article>
+<h2>Envíos</h2>
+<p>La web ya deja preparada la comunicación de envíos para cuando se active la venta online.</p>
+</article>
+<article>
+<h2>Cambios</h2>
+<p>La política está planteada para informar antes de comprar y reducir dudas habituales.</p>
+</article>
+<article>
+<h2>Tienda física</h2>
+<p>La ubicación y el contacto se mantienen visibles para reforzar confianza y atención cercana.</p>
+</article>
+</section>
+</main>
+
+<section id="contacto" class="contact">
+<h2>Contacto</h2>
+<p>Calle Mayor, 43. Garrucha(04630)</p>
+<p>+34 623 46 86 79</p>
+<p><a href="mailto:decostags04630@gmail.com">decostags04630@gmail.com</a></p>
+<div class="hours">
+<h3>Horario</h3>
+<p>Lunes a sábado: 10:00 - 13:30 y 17:00 - 20:30</p>
+<p>Domingo: cerrado</p>
+</div>
+</section>
+
+<footer class="legal">
+<a class="admin-access" id="admin-access-link" href="admin/index.html">Administración</a>
+<h2>Protección de datos</h2>
+<p>
+En cumplimiento del Reglamento (UE) 2016/679, Reglamento General de Protección de Datos (RGPD), y de la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), los datos enviados a través de esta web se utilizarán únicamente para gestionar selecciones, consultas y comunicaciones relacionadas con DCOSTA GS STUDIO.
+</p>
+<p>
+La base legal del tratamiento es la solicitud realizada por el usuario y, en su caso, la preparación de una compra o servicio. Los datos no se cederán a terceros salvo obligación legal o necesidad operativa cuando se active la venta online.
+</p>
+<p>
+Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a <a href="mailto:decostags04630@gmail.com">decostags04630@gmail.com</a>. También puedes presentar una reclamación ante la Agencia Española de Protección de Datos si consideras que el tratamiento no se ajusta a la normativa.
+</p>
+<p><a href="legal.html">Aviso legal, privacidad, cambios y envios</a></p>
+</footer>
+
+</body>
+</html>
