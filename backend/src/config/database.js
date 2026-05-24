@@ -5,6 +5,7 @@ const { Pool } = pg;
 
 export const db = new Pool({
   connectionString: env.databaseUrl,
+  connectionTimeoutMillis: 10000,
   ssl: env.databaseUrl.includes("supabase.co") || env.databaseUrl.includes("sslmode=require")
     ? { rejectUnauthorized: false }
     : undefined,

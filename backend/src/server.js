@@ -3,9 +3,15 @@ import { env } from "./config/env.js";
 import { db } from "./config/database.js";
 
 async function bootstrap() {
-  await db.query("SELECT 1");
-  app.listen(env.port, () => {
+  app.listen(env.port, async () => {
     console.log(`Backend listening on http://localhost:${env.port}`);
+
+    try {
+      await db.query("SELECT 1");
+      console.log("Database connection ready");
+    } catch (error) {
+      console.error("Database connection check failed:", error);
+    }
   });
 }
 

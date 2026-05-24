@@ -62,7 +62,7 @@ Alternativa recomendada para este repositorio: definir variables de entorno en V
 
 ```text
 DCOSTA_DATA_SOURCE=api
-DCOSTA_API_BASE_URL=https://dcosta-store.onrender.com/api
+DCOSTA_API_BASE_URL=https://dcostagsstudio-demo.onrender.com/api
 ```
 
 Sin esas variables, la web publica sigue en modo local para que el catalogo no dependa de un backend sin desplegar.
@@ -124,8 +124,8 @@ En Render, pega estas variables en Environment. El `render.yaml` deja los secret
 6. Cuando Render de la URL temporal, comprueba:
 
 ```bash
-curl https://dcosta-store.onrender.com/api/health
-curl https://dcosta-store.onrender.com/api/ready
+curl https://dcostagsstudio-demo.onrender.com/api/health
+curl https://dcostagsstudio-demo.onrender.com/api/ready
 ```
 
 Respuesta esperada:

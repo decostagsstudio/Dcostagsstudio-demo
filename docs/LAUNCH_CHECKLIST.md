@@ -19,7 +19,7 @@
 - `https://dcostagsstudio-demo.vercel.app/` responde correctamente.
 - `https://dcostagsstudio-demo.vercel.app/legal.html` contiene el titular fiscal real.
 - Vercel sigue en modo local hasta configurar `DCOSTA_DATA_SOURCE=api` y `DCOSTA_API_BASE_URL`.
-- `https://dcosta-store.onrender.com/api/health` devuelve 404, por lo que Render no esta desplegado en esa URL o el servicio usa otra URL.
+- URL prevista de Render/API: `https://dcostagsstudio-demo.onrender.com/api`.
 
 ## Bloqueado por datos reales
 

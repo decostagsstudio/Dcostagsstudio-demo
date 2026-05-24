@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dcosta-store
+    name: dcostagsstudio-demo
     runtime: node
     plan: starter
     region: frankfurt

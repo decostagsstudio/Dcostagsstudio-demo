@@ -1,5 +1,5 @@
 const DEFAULT_FRONTEND_URL = "https://dcostagsstudio-demo.vercel.app";
-const DEFAULT_BACKEND_API_URL = "https://dcosta-store.onrender.com/api";
+const DEFAULT_BACKEND_API_URL = "https://dcostagsstudio-demo.onrender.com/api";
 
 const args = process.argv.slice(2);
 const frontendOnly = args.includes("--frontend-only");
