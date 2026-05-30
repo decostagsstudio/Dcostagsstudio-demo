@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-static.mjs",
-    "check:public": "node scripts/check-production.mjs"
+    "check:public": "node scripts/check-production.mjs",
+    "postinstall": "npm --prefix backend ci --omit=dev",
+    "render:build": "npm --prefix backend ci --omit=dev",
+    "render:migrate": "npm --prefix backend run db:migrate",
+    "start": "node backend/src/server.js"
   }
 }
