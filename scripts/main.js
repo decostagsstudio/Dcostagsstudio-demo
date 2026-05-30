@@ -117,9 +117,12 @@ function readMarketingSettings() {
   }
 }
 
-function createProductCard(product) {
+function createProductCard(product, options = {}) {
   const card = document.createElement("article");
   card.className = "card";
+  if (options.pseudo3d) {
+    card.classList.add("card--pseudo-3d");
+  }
   card.dataset.productName = product.name;
   card.tabIndex = 0;
   card.setAttribute("role", "link");
@@ -160,6 +163,10 @@ function createProductCard(product) {
     }
   });
 
+  if (options.pseudo3d) {
+    attachPseudo3D(card);
+  }
+
   return card;
 }
 
@@ -168,27 +175,23 @@ function renderProducts() {
   womensContainer.innerHTML = "";
   walletContainer.innerHTML = "";
   bagContainer.innerHTML = "";
+  let pseudo3dApplied = false;
 
-  visibleProducts().filter((product) => product.category === "men").forEach((product) =>
-    mensContainer.appendChild(
-      createProductCard(product),
-    ),
-  );
-  visibleProducts().filter((product) => product.category === "women").forEach((product) =>
-    womensContainer.appendChild(
-      createProductCard(product),
-    ),
-  );
-  visibleProducts().filter((product) => product.category === "wallets").forEach((product) =>
-    walletContainer.appendChild(
-      createProductCard(product),
-    ),
-  );
-  visibleProducts().filter((product) => product.category === "bags").forEach((product) =>
-    bagContainer.appendChild(
-      createProductCard(product),
-    ),
-  );
+  function appendCategoryProducts(container, category) {
+    visibleProducts().filter((product) => product.category === category).forEach((product) => {
+      const usePseudo3d = !pseudo3dApplied && Boolean(product.image);
+      const card = createProductCard(product, { pseudo3d: usePseudo3d });
+      if (usePseudo3d) {
+        pseudo3dApplied = true;
+      }
+      container.appendChild(card);
+    });
+  }
+
+  appendCategoryProducts(womensContainer, "women");
+  appendCategoryProducts(mensContainer, "men");
+  appendCategoryProducts(walletContainer, "wallets");
+  appendCategoryProducts(bagContainer, "bags");
 
   showEmptyCategoryState(womensContainer, "No hay prendas de mujer con esos filtros.");
   showEmptyCategoryState(mensContainer, "No hay prendas de hombre con esos filtros.");
@@ -254,6 +257,43 @@ async function addToCart(product) {
   await storeApi.saveCart(cart);
   renderCart();
   showToast(`${product.name} - talla ${selectedSize} añadido a la bolsa.`);
+}
+
+function attachPseudo3D(card) {
+  let frame = 0;
+
+  function reset() {
+    card.style.removeProperty("--tilt-x");
+    card.style.removeProperty("--tilt-y");
+    card.style.removeProperty("--shine-x");
+    card.style.removeProperty("--shine-y");
+  }
+
+  function update(clientX, clientY) {
+    const rect = card.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const x = (clientX - rect.left) / rect.width;
+    const y = (clientY - rect.top) / rect.height;
+    const tiltY = (x - 0.5) * 13;
+    const tiltX = (0.5 - y) * 11;
+
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      card.style.setProperty("--tilt-x", `${tiltX.toFixed(2)}deg`);
+      card.style.setProperty("--tilt-y", `${tiltY.toFixed(2)}deg`);
+      card.style.setProperty("--shine-x", `${(x * 100).toFixed(1)}%`);
+      card.style.setProperty("--shine-y", `${(y * 100).toFixed(1)}%`);
+    });
+  }
+
+  card.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch") return;
+    update(event.clientX, event.clientY);
+  });
+  card.addEventListener("pointerleave", reset);
+  card.addEventListener("pointercancel", reset);
+  card.addEventListener("blur", reset);
 }
 
 async function toggleFavorite(product, button) {

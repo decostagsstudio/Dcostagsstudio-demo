@@ -870,6 +870,76 @@ border-radius:0;
 overflow:hidden;
 }
 
+.card--pseudo-3d{
+overflow:visible;
+perspective:900px;
+transform-style:preserve-3d;
+}
+
+.card--pseudo-3d .card-media,
+.card--pseudo-3d .card-content{
+transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));
+transform-style:preserve-3d;
+transition:transform .18s ease,box-shadow .18s ease;
+will-change:transform;
+}
+
+.card--pseudo-3d .card-media{
+box-shadow:0 24px 54px rgba(35,29,24,.16);
+}
+
+.card--pseudo-3d .card-media::before{
+content:"";
+position:absolute;
+inset:0;
+z-index:2;
+pointer-events:none;
+background:radial-gradient(circle at var(--shine-x,50%) var(--shine-y,50%),rgba(255,255,255,.34),rgba(255,255,255,.08) 28%,rgba(20,16,12,0) 58%);
+mix-blend-mode:screen;
+opacity:.72;
+transition:opacity .18s ease;
+}
+
+.card--pseudo-3d .card-media::after{
+content:"";
+position:absolute;
+inset:10px;
+z-index:3;
+pointer-events:none;
+border:1px solid rgba(255,255,255,.38);
+transform:translateZ(26px);
+}
+
+.card--pseudo-3d .product-badge,
+.card--pseudo-3d .like-button{
+transform:translateZ(42px);
+}
+
+.card--pseudo-3d:hover .card-media{
+box-shadow:0 34px 76px rgba(35,29,24,.24);
+}
+
+.card--pseudo-3d:hover .card-content{
+transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translateZ(12px);
+}
+
+.card--pseudo-3d:hover img{
+transform:scale(1.075) translateZ(18px);
+}
+
+@media (prefers-reduced-motion:reduce){
+.card--pseudo-3d .card-media,
+.card--pseudo-3d .card-content,
+.card--pseudo-3d:hover img{
+transform:none;
+transition:none;
+}
+
+.card--pseudo-3d .card-media::before{
+opacity:0;
+}
+}
+
 .card-media{
 position:relative;
 overflow:hidden;
