@@ -3,8 +3,8 @@ import { env } from "./config/env.js";
 import { db } from "./config/database.js";
 
 async function bootstrap() {
-  app.listen(env.port, async () => {
-    console.log(`Backend listening on http://localhost:${env.port}`);
+  app.listen(env.port, env.host, async () => {
+    console.log(`Backend listening on http://${env.host}:${env.port}`);
 
     try {
       await db.query("SELECT 1");

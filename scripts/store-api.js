@@ -7,9 +7,17 @@ const DCOSTA_DEFAULT_API_BASE_URL = (
   : "/api";
 const DCOSTA_API_BASE_URL = DCOSTA_RUNTIME_CONFIG.apiBaseUrl || DCOSTA_DEFAULT_API_BASE_URL;
 const DCOSTA_IS_BACKEND_ORIGIN = window.location.port === "4000" || window.location.hostname.endsWith(".onrender.com");
+const DCOSTA_PUBLIC_FRONTEND_HOSTS = new Set([
+  "dcostagsstudio-demo.vercel.app",
+  "dcostagsstudio.com",
+  "www.dcostagsstudio.com",
+]);
+const DCOSTA_IS_PUBLIC_FRONTEND_ORIGIN =
+  DCOSTA_PUBLIC_FRONTEND_HOSTS.has(window.location.hostname) ||
+  window.location.hostname.endsWith(".vercel.app");
 const DCOSTA_DATA_SOURCE = String(
   DCOSTA_RUNTIME_CONFIG.dataSource ||
-  (DCOSTA_RUNTIME_CONFIG.apiBaseUrl || DCOSTA_IS_BACKEND_ORIGIN ? "api" : "local"),
+  (DCOSTA_RUNTIME_CONFIG.apiBaseUrl || DCOSTA_IS_BACKEND_ORIGIN || DCOSTA_IS_PUBLIC_FRONTEND_ORIGIN ? "api" : "local"),
 ).toLowerCase();
 const DCOSTA_LEGAL_VERSION = "2026-05-23";
 

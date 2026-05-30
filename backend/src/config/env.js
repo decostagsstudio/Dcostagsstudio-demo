@@ -49,6 +49,7 @@ if (nodeEnv === "production") {
 export const env = {
   nodeEnv,
   port: Number(process.env.PORT || 4000),
+  host: process.env.HOST || "0.0.0.0",
   corsOrigin,
   databaseUrl: required("DATABASE_URL"),
   jwtSecret,

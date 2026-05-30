@@ -56,16 +56,16 @@ El archivo `vercel.json` deja rutas directas para:
 - `/admin` -> `/admin/index.html`
 - `/cliente` -> `/cliente/index.html`
 
-Vercel puede servir la web estatica. La API real sigue en Render/Supabase; si se quiere que admin guarde contra backend desde Vercel, hay que configurar un rewrite de `/api/*` hacia la URL publica del backend cuando Render este desplegado.
+Vercel sirve la web estatica y `vercel.json` incluye un rewrite de `/api/*` hacia la URL publica del backend en Render para que admin y tienda puedan usar la API sin cambiar el origen en el navegador.
 
-Alternativa recomendada para este repositorio: definir variables de entorno en Vercel y dejar que el build genere `dist/scripts/runtime-config.js`:
+Alternativa si no se quiere usar el rewrite: definir variables de entorno en Vercel y dejar que el build genere `dist/scripts/runtime-config.js`:
 
 ```text
 DCOSTA_DATA_SOURCE=api
 DCOSTA_API_BASE_URL=https://dcostagsstudio-demo.onrender.com/api
 ```
 
-Sin esas variables, la web publica sigue en modo local para que el catalogo no dependa de un backend sin desplegar.
+Sin esas variables, la web publica usa automaticamente API en dominios Vercel/canonicos y modo local en desarrollo.
 
 Despues de cambiar esas variables en Vercel, haz redeploy y comprueba:
 
@@ -73,7 +73,7 @@ Despues de cambiar esas variables en Vercel, haz redeploy y comprueba:
 npm run check:public
 ```
 
-El aviso "Vercel todavia en modo local" debe desaparecer cuando `dist/scripts/runtime-config.js` incluya `dataSource: "api"` y `apiBaseUrl`.
+La comprobacion debe marcar `Vercel conectado a API`, ya sea por `runtime-config.js` o por el proxy `/api`.
 
 ## Supabase PostgreSQL
 

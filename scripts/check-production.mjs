@@ -99,11 +99,19 @@ const runtimeConfig = parseRuntimeConfig(runtimeText);
 if (runtimeConfig.dataSource === "api" && runtimeConfig.apiBaseUrl) {
   record("ok", "Vercel conectado a API", runtimeConfig.apiBaseUrl);
 } else {
-  record(
-    "warn",
-    "Vercel todavia en modo local",
-    "define DCOSTA_DATA_SOURCE=api y DCOSTA_API_BASE_URL en Vercel y redeploy",
+  const proxyHealth = await checkJson(`${frontendUrl}/api/health`, "Vercel /api proxy", (payload) =>
+    payload?.ok === true && payload?.service === "dcosta-store-backend" ? true : "respuesta no reconocida",
   );
+
+  if (proxyHealth) {
+    record("ok", "Vercel conectado a API", "/api proxy");
+  } else {
+    record(
+      "warn",
+      "Vercel todavia sin proxy API",
+      "redeploy con vercel.json actualizado o define DCOSTA_DATA_SOURCE=api y DCOSTA_API_BASE_URL",
+    );
+  }
 }
 
 if (!frontendOnly) {
