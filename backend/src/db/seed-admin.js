@@ -23,6 +23,8 @@ async function run() {
        role = EXCLUDED.role,
        password_hash = EXCLUDED.password_hash,
        is_active = TRUE,
+       failed_attempts = 0,
+       locked_until = NULL,
        updated_at = NOW()`,
     [name, email, hash],
   );
