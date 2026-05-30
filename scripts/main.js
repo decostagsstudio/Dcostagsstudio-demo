@@ -730,7 +730,6 @@ setInterval(() => {
 
 async function initStorefront() {
   allProducts = await storeApi.getProducts();
-  await storeApi.saveCatalog(allProducts);
   cart = await storeApi.getCart();
   favorites = await storeApi.getFavorites();
   renderProducts();
