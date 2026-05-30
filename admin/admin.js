@@ -1524,6 +1524,7 @@ function showProductForm(product, products) {
     const manualImages = parseImagesInput(data.get("images") || "");
     const fileInput = event.currentTarget.querySelector('[name="imageFiles"]');
     let uploadedUrls = [];
+    let uploadFailed = false;
 
     if (fileInput?.files?.length) {
       try {
@@ -1535,7 +1536,8 @@ function showProductForm(product, products) {
           showToast(status === 401 ? "Sesion API caducada. Vuelve a entrar en admin." : "Sin permisos para subir imagenes.");
           throw error;
         }
-        showToast("Cloudinary no disponible. Se mantienen las URLs manuales.");
+        uploadFailed = true;
+        showToast(status === 503 ? "Cloudinary no esta configurado en Render." : "Cloudinary no disponible. Se mantienen las URLs manuales.");
         console.warn("[DCOSTA_ADMIN] Cloudinary upload fallback:", error?.message || error);
       }
     }
@@ -1567,6 +1569,14 @@ function showProductForm(product, products) {
       images: extraImages,
       description: String(data.get("description") || "").trim(),
     };
+    if (uploadFailed && !primaryImage) {
+      showToast("No se guardo: sube imagen cuando Cloudinary este configurado o pega una URL.");
+      return;
+    }
+    if (!primaryImage) {
+      showToast("Anade una imagen o URL antes de guardar el producto.");
+      return;
+    }
     if (!updated.name) {
       showToast("El nombre es obligatorio");
       return;
