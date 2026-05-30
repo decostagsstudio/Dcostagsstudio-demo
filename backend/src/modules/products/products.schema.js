@@ -1,6 +1,17 @@
 import { z } from "zod";
 
 const sizeStockSchema = z.record(z.string(), z.number().int().min(0)).default({});
+const imageSourceSchema = z.string().refine((value) => {
+  if (value === "") return true;
+  if (/^\/(?!\/)\S+$/.test(value)) return true;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}, "Invalid image source");
 
 export const productSchema = z.object({
   id: z.string().min(1),
@@ -18,8 +29,8 @@ export const productSchema = z.object({
   badge: z.string().optional().default(""),
   care: z.string().optional().default(""),
   stock: z.string().optional().default("Disponible"),
-  image: z.string().url().optional().or(z.literal("")).default(""),
-  images: z.array(z.string().url()).optional().default([]),
+  image: imageSourceSchema.optional().default(""),
+  images: z.array(imageSourceSchema).optional().default([]),
   description: z.string().optional().default(""),
   sizes: z.array(z.string()).optional().default([]),
   sizeStock: sizeStockSchema,

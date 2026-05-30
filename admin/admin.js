@@ -725,6 +725,8 @@ async function saveProducts(products) {
         showToast("Sesion API caducada. Cierra sesion y vuelve a entrar en admin.");
       } else if (status === 403) {
         showToast("Tu usuario no tiene permiso para guardar productos.");
+      } else if (status === 400) {
+        showToast("Catalogo invalido. Revisa los campos del producto.");
       } else {
         showToast("No se pudo guardar en Supabase. Revisa backend y conexion.");
       }
